@@ -1,6 +1,6 @@
 ### premier script explo gouramic
 
-pkgs <-  c("stringr", "rgdal", "raster", "lubridate")
+pkgs <-  c("dplyr","stringr", "rgdal", "raster", "lubridate", "tidyr", "ggplot2")
 inst <- lapply(pkgs, library, character.only = TRUE)
 
 # les données
@@ -17,7 +17,7 @@ list.files("data", recursive = TRUE, pattern = "3.res.png$")
 
 head(list.files("data", recursive = TRUE, pattern = "res.png$"), 10)
 
-# un tableau de synthése
+# 1-  un tableau de synthése des photos =======================
 
 # liste des png
 list_png <- list.files("data", recursive = TRUE, pattern = "res.png$")
@@ -37,6 +37,50 @@ rm(on_separe, adresse, sujet)
 # pour le moment deux cas soit l'année unique soit ymd
 # attention si on a d'autres cas
 exemple.dat$date <- parse_date_time(str_extract(list_png, pattern = "(?<=__).*(?=__)"), orders = c("ymd", "y"))
+
+# la version est juste avant .res.png
+exemple.dat$version <- as.numeric(str_extract(list_png, pattern = "[:digit:](?=.res.png)"))
+
+# cas ou on a plusieurs photos
+exemple.dat$id_photo <- str_extract(list_png, pattern = "(?<=C).*(?=.jp)")
+
+# ici on ne va garder que la dernière bonne version
+exemple.dat <- exemple.dat %>% 
+    dplyr::group_by(sujet, adresse, date, id_photo) %>% 
+    dplyr::summarize(version = max(version)) %>% 
+    ungroup()
+
+str(exemple.dat)
+
+# 2-  lecture des dates debut et fin par sujet ==================
+
+sujet.dat <- read.csv("data/Liste.csv", sep = "\t")
+
+# si on veut tidy le jeux de données il faut recoder Date_Debut et Date_Fin 
+
+# reformatage du temps
+sujet.dat$Date_Debut <- parse_date_time(sujet.dat$Date_Debut, orders = c("my", "dmy"))
+sujet.dat$Date_Fin <- parse_date_time(sujet.dat$Date_Fin, orders = c("my", "dmy"))
+names(sujet.dat)[1] <- "sujet"
+names(sujet.dat)[2] <- "adresse"
+sujet.dat$adresse <- as.factor(sujet.dat$adresse)
+
+str(sujet.dat)
+
+# si on veut passer en tidyr et on vire le pas necessaire pour le moment
+sujet.dat <- tidyr::gather(sujet.dat, "Date_Debut", "Date_Fin", key = "type_date", value = "date") %>%
+                    dplyr::select(sujet, adresse, type_date, date)
+
+    
+# 3 - un graphique
+
+ggplot(sujet.dat, aes(y = sujet, x = date, color = adresse))+
+    geom_line(lwd = 1.5) +
+    scale_color_brewer(palette = "Set1") +
+    geom_point(data = exemple.dat, aes(y = sujet, x = date), inherit.aes = FALSE,  alpha = 0.9, pch = 3) +
+    theme_bw()
+
+
 
 # pb dans ces raster
 test <- raster(paste0("data/","03_0031/1/1976/gouResult/IGNF_PVA_1-0__1976-06-08__C3620-0051_1976_FR2796_0061.jp2.0.res.png"))
