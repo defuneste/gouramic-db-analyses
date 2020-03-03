@@ -17,6 +17,20 @@ list.files("data", recursive = TRUE, pattern = "3.res.png$")
 
 head(list.files("data", recursive = TRUE, pattern = "res.png$"), 10)
 
+
+# liste des png
+# on fait une liste des fichiers qui ont besoin d'un world file,
+# le world file doit avoir le meme nom mais terminer par w
+list_png <- list.files("data", recursive = TRUE, pattern = "res.png$", full.names = TRUE)
+str_replace(list_png, pattern = "png$", "pgw")
+
+# une liste/vector des fichiers à copier
+list_a_copier <- list.files("data", pattern = "w$", full.names = TRUE)
+
+# on les copies par le nom remplacer 
+file.copy(list_a_copier,  str_replace(list_png, pattern = "png$", "pgw"))
+
+
 # 1-  un tableau de synthése des photos =======================
 
 # liste des png
@@ -63,7 +77,7 @@ sujet.dat$Date_Debut <- parse_date_time(sujet.dat$Date_Debut, orders = c("my", "
 sujet.dat$Date_Fin <- parse_date_time(sujet.dat$Date_Fin, orders = c("my", "dmy"))
 names(sujet.dat)[1] <- "sujet"
 names(sujet.dat)[2] <- "adresse"
-sujet.dat$adresse <- as.factor(sujet.dat$adresse)
+sujet.dat$adresse <- as.factor(sujet.dat$adresse) # pe plus caractere
 
 str(sujet.dat)
 
@@ -83,7 +97,7 @@ ggplot(sujet.dat, aes(y = sujet, x = date, color = adresse))+
 
 
 # pb dans ces raster
-test <- raster(paste0("data/","03_0031/1/1976/gouResult/IGNF_PVA_1-0__1976-06-08__C3620-0051_1976_FR2796_0061.jp2.0.res.png"))
+test <- raster(list_png[1])
 
 res(test)
 
