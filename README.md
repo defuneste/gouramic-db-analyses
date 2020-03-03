@@ -5,6 +5,7 @@ Analyse spatio-temporelle à posteriori des données issues du logiciel Gouramic
 ## Tâches
 - [ ] Modéliser et créer une base de données postgreslq pour gérer les données issues du logiciel
 - [ ] Explorer l'automatisation du géoréférencement des images aériennes historiques à partir des méta-données disponibles (fichiers .*w)
+
 (to be continued)
 
 ## Références
