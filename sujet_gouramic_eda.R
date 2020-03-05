@@ -51,65 +51,125 @@ allsujet.dat <- subset(allsujet.dat, select = -study_population)
 dim(allsujet.dat[is.na(allsujet.dat$CP_commune_p),])
 # il y a 48 adresses sans renseignement : NA
 # il faut divisier le probleme
-# je pense d'abord regarder les cas ou j'ai un numero de rue 
+# il faudra cibler les adresses d'importances et passer par un sig ?
 
-# un exemple
 # adresse_test <- paste("LA TUILERIE D EN HAUT", "28400 NOGENT LE ROTROU")
 # geocode(adresse_test)
 
 # 1- Préparation des données ========================
 
-# on fait tout ceux avec un numero de rue
-allsujet_num_rue.dat <- allsujet.dat[!is.na(allsujet.dat$nb_rue_p),]
+# 1-a Cas avec ceux avec un numero de rue =====
+allsujet_num_rue.dat <- allsujet.dat
 
-# on va extraire le code postale
+# extraction du code postal pour geocode_tbl 
 allsujet_num_rue_clean.dat <- data.frame(
-                                     code_post = str_extract_all(allsujet_num_rue.dat$CP_commune_p, pattern = "\\b\\d{5}\\b", simplify = TRUE),
-                                     commune = str_to_upper(                                                               # on passe en UPPER
+                                     Id_cart = allsujet_num_rue.dat$ID_CARTO, # id unique
+                                     # date de naissance 
+                                     Date_birth = allsujet_num_rue.dat$date_birth_p,
+                                     # date start et end d'adresse
+                                     Date_start = allsujet_num_rue.dat$date_start_add_p,
+                                     Date_end = allsujet_num_rue.dat$date_end_add_p,
+                                     Code_postal = str_extract_all(allsujet_num_rue.dat$CP_commune_p, pattern = "\\b\\d{5}\\b", simplify = TRUE),
+                                     Commune = str_to_upper(                                                               # on passe en UPPER
                                                str_trim(                                                                     # sans whitespace
-                                               str_remove_all(allsujet_num_rue.dat$CP_commune_p, pattern = "\\b\\d{5}\\b"))) # on retire les codes postaux
-                                           )
+                                               str_remove_all(allsujet_num_rue.dat$CP_commune_p, pattern = "\\b\\d{5}\\b"))), # on retire les codes postaux
+                                     Nb_rue = allsujet_num_rue.dat$nb_rue_p,
+                                     Rue = allsujet_num_rue.dat$rue_p,
+                                     Lieu_dit = allsujet_num_rue.dat$lieudit_p,
+                                     Compl_add_p = allsujet_num_rue.dat$compl_add_p,
+                                     stringsAsFactors = FALSE)
 
+# ici je passe par tidyr::unite() car il ya un filtre des Na
 
-# pas des facteurs
-allsujet_num_rue_clean.dat$commune <- as.character(allsujet_num_rue_clean.dat$commune)
-allsujet_num_rue_clean.dat$code_post <- as.character(allsujet_num_rue_clean.dat$code_post)
-# id 
-allsujet_num_rue_clean.dat$ID_CARTO <- allsujet.dat$ID_CARTO[!is.na(allsujet.dat$nb_rue_p)]
+allsujet_num_rue_clean.dat <- allsujet_num_rue_clean.dat %>% 
+    tidyr::unite("Adresse", Nb_rue, Rue, sep = " ",  na.rm = TRUE) %>% 
+    tidyr::unite("Info_sup", Lieu_dit, Compl_add_p, na.rm = TRUE)
+
 
 # il y a des trous, principalement des villes sans code postal
+
+sort(allsujet_num_rue_clean.dat$Commune[allsujet_num_rue_clean.dat$Code_postal == ""])
+
+# Des corretions à la main  ======
+allsujet_num_rue_clean.dat$Commune[allsujet_num_rue_clean.dat$Commune == "MEUDON (92)"] <- "MEUDON"
+allsujet_num_rue_clean.dat$Commune[allsujet_num_rue_clean.dat$Commune == "76 SOTTEVILLE LES ROUENS"] <- "SOTTEVILLE LES ROUENS"
+allsujet_num_rue_clean.dat$Commune[allsujet_num_rue_clean.dat$Commune == "VIROFALY"] <- "VIROFLAY"
+
+# On complete, apres verif de pas eccraser dans le cas de plusieurs codes postaux pour une commune 
+# cas pb des villes a arrondissement Lyon, bordeau
+# attention aussi au homonymes
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "AGEN",] <- "47000"
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "AIGLUN"] <- "04510"
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "ANNECY"] <- "74000"
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "ANNECY LE VIEUX"] <- "74940"
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "AUXERRE"] <- "89000"
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "AZAY LE RIDEAU"] <- "37190"
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "BANYULS SUR MER"] <- "66650"
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "BOISBERGUES"] <- "80600"
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "BOURG SAINT MAURICE"] <- "73700"
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "BRESLES"] <- "60510"
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "CARCASSONE"] <- "11000"
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "CHAMBERY"] <- "73000"
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "CHAMPTERCIER"] <- "04660" 
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "CHARLEVILLE MEZIERES"] <- "08000"
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "CHATOU"] <- "78400"
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "CHAUMONT"] <- "52000"
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "CHEILLE LA CHAPELLE"] <- "37190"
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "DAOURS"] <- "80800"
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "DIGNE LES BAINS"] <- "04000"
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "DORMELLES"] <- "77130"
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "DOUCHY LES MINES"] <- "59282"
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "DUGNY"] <- "93440"
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "ESCAUDAIN"] <- "59124"
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "FLESSELLES"] <- "80260"
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "FRAISSE CABARDES"] <- "11600"
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "GESPUNSART"] <- "08700"
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "LAMBESC"] <-"13410"
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "LE CHAFFAUT SAINT JURSON"] <- "04510" 
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "LES CLAYES SOUS BOIS"] <- "78340"
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "MALLEMORT"] <- "13370"
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "MELUN"] <- "77000"
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "MEUDON"] <- "92190"
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "MONTIGNY LES BRETONNEUX"] <- "78180"
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "MORET SUR LOING"] <- "77250"
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "NEUFMANIL"] <- "08700" 
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "NEVERS"] <- "58000"
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "ORLEANS LA SOURCE"] <- "45100"
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "OUTREBOIS"] <- "80600"
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "POITIERS"] <- "86000"
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "ROUBAIX"]  <- "59100"
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "SAINT GERMAIN EN LAYE"] <- "78100"
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "SAINT JORIOZ"] <- "74410"
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "SAULZOIR"] <- "59227"
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "SENNECEY LE GRAND"] <- "71240"
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "SEYNOD"] <- "74600"
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "SOTTEVILLE LES ROUENS"] <- "76300"
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "TASSIN LA DEMI LUNE"] <- "69160"
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "TOUL"] <- "54200"
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "VALENCIENNES"] <- "59300"
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "VELIZY"] <- "78140"
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "VERSAILLES"] <- "78000"
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune ==  "VILLECERF"] <- "77250" 
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune ==  "VILLEFRANCHE SUR MER"] <- "06230"
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune ==  "VILLEMER"] <- "77250"
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune ==  "VILLERS_SEMEUSE"] <- "08000"
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune ==  "VILLEURBANNE"] <- "69100"
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune ==  "VIROFLAY"] <- "78220"
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune ==  "YVERNAUMONT"] <- "08430"
+
 # il va falloir aller le chercher dans la liste des codes postaux
-
-
-allsujet_num_rue_clean.dat$commune[allsujet_num_rue_clean.dat$code_post == ""]
-# trois corretions à la main 
-allsujet_num_rue_clean.dat$commune[allsujet_num_rue_clean.dat$commune == "MEUDON (92)"] <- "MEUDON"
-allsujet_num_rue_clean.dat$commune[allsujet_num_rue_clean.dat$commune == "76 SOTTEVILLE LES ROUENS"] <- "SOTTEVILLE LES ROUENS"
-allsujet_num_rue_clean.dat$commune[allsujet_num_rue_clean.dat$commune == "VIROFALY"] <- "VIROFLAY"
-
-# https://www.data.gouv.fr/fr/datasets/base-officielle-des-codes-postaux/
-
-la_poste.dat <- read.csv("data/laposte_hexasmal.csv", sep = ";")
-summary(la_poste.dat)
-
+# # https://www.data.gouv.fr/fr/datasets/base-officielle-des-codes-postaux/
+# 
+# la_poste.dat <- read.csv("data/laposte_hexasmal.csv", sep = ";")
+# summary(la_poste.dat)
+#
+# allsujet_num_rue_clean.dat$commune[allsujet_num_rue_clean.dat$code_post == ""][!
+#                                                                                    allsujet_num_rue_clean.dat$commune[allsujet_num_rue_clean.dat$code_post == ""] %in% la_poste.dat$Nom_commune]
 # remplacement des manquants 
 # un part doit être corrige à la main 
 # ancienne commune en esperant que banR marche bien avec les anciennes communes 
 # sinon on devra convertir les anciennes communes en nouvelles
-allsujet_num_rue_clean.dat$commune[allsujet_num_rue_clean.dat$code_post == ""][!
-                                                allsujet_num_rue_clean.dat$commune[allsujet_num_rue_clean.dat$code_post == ""] %in% la_poste.dat$Nom_commune]
-
-allsujet_num_rue_clean.dat$code_post[allsujet_num_rue_clean.dat$commune == "MONTIGNY LES BRETONNEUX"] <- 78180
-allsujet_num_rue_clean.dat$code_post[allsujet_num_rue_clean.dat$commune == "SEYNOD"] <- 74600
-allsujet_num_rue_clean.dat$code_post[allsujet_num_rue_clean.dat$commune == "SAINT JORIOZ"] <- 74410
-allsujet_num_rue_clean.dat$code_post[allsujet_num_rue_clean.dat$commune == "LYON"] <- 69001 # faux mais on va tester si cela passe
-allsujet_num_rue_clean.dat$code_post[allsujet_num_rue_clean.dat$commune == "VELIZY"] <- 78140
-allsujet_num_rue_clean.dat$code_post[allsujet_num_rue_clean.dat$commune == "MORET SUR LOING"] <- 77250
-allsujet_num_rue_clean.dat$code_post[allsujet_num_rue_clean.dat$commune == "SOTTEVILLE LES ROUENS"] <- 76300
-allsujet_num_rue_clean.dat$code_post[allsujet_num_rue_clean.dat$commune == "SAINT GERMAIN EN LAYE"] <- 78100
-
 # "CASSETETE" celui la doit etre du troll a verif
-
 # la part via la bd de la poste
 # je mets de cote car une commune peut avoir plusieurs code postaux et qu'il va falloir rentrer à la main
 # on va voir si il s'en sort sans
@@ -118,11 +178,21 @@ allsujet_num_rue_clean.dat$code_post[allsujet_num_rue_clean.dat$commune == "SAIN
 # la_poste.dat[la_poste.dat$Nom_commune %in% allsujet_num_rue_clean.dat$commune[allsujet_num_rue_clean.dat$code_post == ""],] %>% 
 #     arrange(Nom_commune)
 
-allsujet_num_rue_clean.dat$adresse_num_rue <- paste(allsujet_num_rue.dat$nb_rue_p, allsujet_num_rue.dat$rue_p)
+# 2 Geocodage de cette partie ========================
+# un hist de verif
+produit_geocode <- geocode_tbl(tbl = allsujet_num_rue_clean.dat, adresse = Adresse, code_postal = Code_postal)
 
-# 2- Geocodage de cette partie ========================
-produit_geocode_p1 <- geocode_tbl(tbl = allsujet_num_rue_clean.dat, adresse = adresse_num_rue, code_postal = code_post)
-openxlsx::write.xlsx(produit_geocode_p1, "data/part1_geocodage.xls")
+rm(allsujet_num_rue_clean.dat, allsujet_num_rue.dat)
+
+produit_geocode %>% 
+    ggplot(aes(result_score, fill = result_type)) +
+    geom_histogram(color = "white") 
+
+summary(as.factor(produit_geocode$result_type))
+
+# cas generique 
+
+openxlsx::write.xlsx(produit_geocode_p1, "data/produit_geocode.xls")
 
 ##.###################################################################################33
 ## III. quelques stats à garder en tête / EDA ====
