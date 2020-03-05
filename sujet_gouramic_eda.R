@@ -229,3 +229,15 @@ allsujet.dat %>%
     labs(x = "Années de naissance", y = "Nombre de sujets")
 
 
+# 2- Determiner des adresses correspondantes à des stades de vie d’intérêt ======
+# la naissance doit correspondre à la premiere adresse
+# pour la periode 8-9 doit on y mettre un buffer ? +/-1 une année -> 7-8-9-10
+# idem pour celle de 12-14 idem +/- 1 une annee 11-12-13-14-15 
+
+produit_geocode
+
+as.numeric(str_extract(produit_geocode$Id_cart, pattern = "[:digit:]$"))
+
+
+
+
