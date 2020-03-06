@@ -182,6 +182,9 @@ allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune ==  "Y
 # un hist de verif
 produit_geocode <- geocode_tbl(tbl = allsujet_num_rue_clean.dat, adresse = Adresse, code_postal = Code_postal)
 
+# une sauvegarde pour eviter un appel das l'API
+# saveRDS(produit_geocode, "data/produit_geocode.rds")
+
 rm(allsujet_num_rue_clean.dat, allsujet_num_rue.dat)
 
 produit_geocode %>% 
@@ -192,7 +195,7 @@ summary(as.factor(produit_geocode$result_type))
 
 # cas generique 
 
-openxlsx::write.xlsx(produit_geocode_p1, "data/produit_geocode.xls")
+openxlsx::write.xlsx(produit_geocode, "data/produit_geocode.xls")
 
 ##.###################################################################################33
 ## III. quelques stats à garder en tête / EDA ====
@@ -232,12 +235,54 @@ allsujet.dat %>%
 # 2- Determiner des adresses correspondantes à des stades de vie d’intérêt ======
 # la naissance doit correspondre à la premiere adresse
 # pour la periode 8-9 doit on y mettre un buffer ? +/-1 une année -> 7-8-9-10
+# ici je propose Enfance, c'est un interval
 # idem pour celle de 12-14 idem +/- 1 une annee 11-12-13-14-15 
-
-produit_geocode
-
-as.numeric(str_extract(produit_geocode$Id_cart, pattern = "[:digit:]$"))
-
+# ici Adolescence, c'est un interval
+# au niveau adresse une adresse peut correspondre plusieurs stade de vie d'interet 
+# du coup je part en format long avec un champ /stade de vie il faudra en tenir compte dans le schema 
 
 
+# 2-a Naissance =========================
+# extraction du dernier num d'ID carto
+# attention les nb adresses peut depasser 9
+produit_geocode$Nun_adresse <- as.numeric(str_extract(produit_geocode$Id_cart, pattern = "[0-9]{1,2}?$"))
+# si 1 -> Naissance
+produit_geocode$Naissance <- ifelse(produit_geocode$Nun_adresse == 1,  1, 0)
+
+# 2-b Enfance =====================
+produit_geocode$interval_adresse <-  interval(produit_geocode$Date_start, produit_geocode$Date_end)
+
+produit_geocode$Enfance <- ifelse(
+                                int_overlaps(produit_geocode$interval_adresse, 
+                                             interval(produit_geocode$Date_birth + years(7), produit_geocode$Date_birth + years(10))) == TRUE
+                                , 1, 0)
+
+# 2-c Adolescence =====================
+
+produit_geocode$Adolescence <- ifelse(
+    int_overlaps(produit_geocode$interval_adresse, 
+                 interval(produit_geocode$Date_birth + years(11), produit_geocode$Date_birth + years(15))) == TRUE
+    , 1, 0)
+
+# 2-d Analyse des adresses par stades de vie ======
+
+produit_geocode$sujet <- substr(produit_geocode$Id_cart, 1,7)
+
+produit_geocode %>% 
+    summarize(Nb_adresse_naissance = sum(Naissance),
+              Nb_adresse_Enfance = sum(Enfance, na.rm = T),
+              Nb_adresse_Adolescence = sum(Adolescence, na.rm = T))
+
+nb_stade_vie_sujet <- produit_geocode %>% 
+    group_by(sujet, result_type) %>% 
+    summarize(Sum_naissance = sum(Naissance), 
+              Sum_enfance = sum(Enfance, na.rm = TRUE),
+              Sum_adolescence = sum(Adolescence,  na.rm = TRUE))
+
+table(nb_stade_vie_sujet$Sum_enfance, nb_stade_vie_sujet$result_type, useNA = "ifany")
+table(nb_stade_vie_sujet$Sum_adolescence, nb_stade_vie_sujet$result_type, useNA = "ifany")
+
+
+produit_geocode$Importance_adresse <- produit_geocode$Naissance + produit_geocode$Enfance + produit_geocode$Adolescence
+table(produit_geocode$Importance_adresse, produit_geocode$result_type)
 
