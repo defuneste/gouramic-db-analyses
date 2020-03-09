@@ -194,9 +194,6 @@ produit_geocode %>%
 
 summary(as.factor(produit_geocode$result_type))
 
-# #une version xls au besoin
-# openxlsx::write.xlsx(produit_geocode, "data/produit_geocode.xls")
-
 ##.###################################################################################33
 ## III. quelques stats à garder en tête / EDA ====
 ##.#################################################################################33
@@ -293,6 +290,7 @@ table(produit_geocode$Importance_adresse, produit_geocode$result_type)
 
 # 3- Exploration de valeurs manquantes =====================================
 
+# 3-a via les valeurs manquantes dans les date ==============
 produit_geocode %>% 
     filter_at(vars(Date_start, Date_end), any_vars(is.na(.))) %>% 
     View()
@@ -303,7 +301,7 @@ affiche_un_sujet <- function(un_Id_carto) {
         dplyr::filter(ID_SECONDAIRE == un_Id_carto)
                     }
 
-affiche_un_sujet("02_0961")
+affiche_un_sujet("22_1055")
 
 # pour les resultats du geocodage
 affiche_une_loc <- function(un_sujet) {
@@ -313,11 +311,24 @@ affiche_une_loc <- function(un_sujet) {
                             produit_geocode %>%  # c'est un peu laid 
                                 dplyr::filter(sujet == un_sujet) %>% 
                                 dplyr::select(Id_cart, Info_sup)
-                            }
-affiche_une_loc("02_0961")
+}
+
+affiche_une_loc("02_0712")
+
+# 3-a via les valeurs manquantes dans les loc ==============
+
+produit_geocode %>% 
+    filter(Importance_adresse >= 1) %>% 
+    filter(is.na(latitude)) %>% 
+    arrange(desc(Importance_adresse)) %>% 
+    View()
 
 
 # 4- un export pour passer en SIG et faire du geocodage à la main =======================
+
+# #une version xls au besoin
+openxlsx::write.xlsx(produit_geocode, "data/produit_geocode.xls")
+
 
 produit_geocode.shp <- sf::st_as_sf(produit_geocode, coords = c("longitude", "latitude"), crs = 4326
                                     , na.fail = FALSE)
