@@ -285,21 +285,41 @@ table(nb_stade_vie_sujet$Sum_adolescence, nb_stade_vie_sujet$result_type, useNA 
 
 produit_geocode$Importance_adresse <- produit_geocode$Naissance + produit_geocode$Enfance + produit_geocode$Adolescence
 
+# ici rajout d'un champs pour specifier le moyen du geocodage
+# a ce stade c'est via banR donc qu'une seule valeur 
+produit_geocode$source_loc <- "geocodage"
 
 table(produit_geocode$Importance_adresse, produit_geocode$result_type)
 
 # 3- Exploration de valeurs manquantes =====================================
 
 produit_geocode %>% 
-    filter_at(vars(Date_start, Date_end), any_vars(is.na(.)))
+    filter_at(vars(Date_start, Date_end), any_vars(is.na(.))) %>% 
+    View()
+
+# fonction rapide d'explo/verif des données
+affiche_un_sujet <- function(un_Id_carto) {
+    allsujet.dat %>% 
+        dplyr::filter(ID_SECONDAIRE == un_Id_carto)
+                    }
+
+affiche_un_sujet("02_0961")
+
+# pour les resultats du geocodage
+affiche_une_loc <- function(un_sujet) {
+                        produit_geocode %>% 
+                            dplyr::filter(sujet == un_sujet) %>% 
+                            View()
+                            produit_geocode %>%  # c'est un peu laid 
+                                dplyr::filter(sujet == un_sujet) %>% 
+                                dplyr::select(Id_cart, Info_sup)
+                            }
+affiche_une_loc("02_0961")
+
 
 # 4- un export pour passer en SIG et faire du geocodage à la main =======================
 
 produit_geocode.shp <- sf::st_as_sf(produit_geocode, coords = c("longitude", "latitude"), crs = 4326
                                     , na.fail = FALSE)
-# ici rajout d'un champs pour specifier le moyen du geocodage
-# a ce stade c'est via banR donc qu'une seule valeur 
-produit_geocode.shp$source_loc <- "geocodage"
-names(produit_geocode.shp)
 
 st_write(produit_geocode.shp, "data/geocode.geojson")
