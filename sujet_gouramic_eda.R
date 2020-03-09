@@ -77,6 +77,7 @@ allsujet_num_rue_clean.dat <- data.frame(
                                      Rue = allsujet_num_rue.dat$rue_p,
                                      Lieu_dit = allsujet_num_rue.dat$lieudit_p,
                                      Compl_add_p = allsujet_num_rue.dat$compl_add_p,
+                                     pt_remarq_p = allsujet_num_rue.dat$pt_remarq_p,
                                      stringsAsFactors = FALSE)
 
 # ici je passe par tidyr::unite() car il ya un filtre des Na
@@ -182,7 +183,7 @@ allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune ==  "Y
 # un hist de verif
 produit_geocode <- geocode_tbl(tbl = allsujet_num_rue_clean.dat, adresse = Adresse, code_postal = Code_postal)
 
-# une sauvegarde pour eviter un appel das l'API
+# une sauvegarde pour eviter un appel dans l'API
 # saveRDS(produit_geocode, "data/produit_geocode.rds")
 
 rm(allsujet_num_rue_clean.dat, allsujet_num_rue.dat)
@@ -193,9 +194,8 @@ produit_geocode %>%
 
 summary(as.factor(produit_geocode$result_type))
 
-# cas generique 
-
-openxlsx::write.xlsx(produit_geocode, "data/produit_geocode.xls")
+# #une version xls au besoin
+# openxlsx::write.xlsx(produit_geocode, "data/produit_geocode.xls")
 
 ##.###################################################################################33
 ## III. quelques stats à garder en tête / EDA ====
@@ -288,12 +288,17 @@ produit_geocode$Importance_adresse <- produit_geocode$Naissance + produit_geocod
 
 table(produit_geocode$Importance_adresse, produit_geocode$result_type)
 
+# 3- Exploration de valeurs manquantes =====================================
 
-# 3- un export pour passer en SIG et faire du geocodage à la main =======================
+produit_geocode %>% 
+    filter_at(vars(Date_start, Date_end), any_vars(is.na(.)))
+
+# 4- un export pour passer en SIG et faire du geocodage à la main =======================
 
 produit_geocode.shp <- sf::st_as_sf(produit_geocode, coords = c("longitude", "latitude"), crs = 4326
                                     , na.fail = FALSE)
-
+# ici rajout d'un champs pour specifier le moyen du geocodage
+# a ce stade c'est via banR donc qu'une seule valeur 
 produit_geocode.shp$source_loc <- "geocodage"
 names(produit_geocode.shp)
 
