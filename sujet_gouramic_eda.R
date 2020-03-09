@@ -12,7 +12,7 @@
 # ici j'ai pris la derniere version
 # devtools::install_github("joelgombin/banR", build_vignettes = TRUE)
 
-pkgs <-  c("dplyr","stringr", "lubridate", "ggplot2", "banR")
+pkgs <-  c("dplyr","stringr", "lubridate", "ggplot2", "banR", "sf")
 inst <- lapply(pkgs, library, character.only = TRUE)
 
 allsujet.dat <- openxlsx::read.xlsx("data/all_Sujets.xlsx")
@@ -83,7 +83,7 @@ allsujet_num_rue_clean.dat <- data.frame(
 
 allsujet_num_rue_clean.dat <- allsujet_num_rue_clean.dat %>% 
     tidyr::unite("Adresse", Nb_rue, Rue, sep = " ",  na.rm = TRUE) %>% 
-    tidyr::unite("Info_sup", Lieu_dit, Compl_add_p, na.rm = TRUE)
+    tidyr::unite("Info_sup", Lieu_dit, Compl_add_p, pt_remarq_p, na.rm = TRUE)
 
 
 # il y a des trous, principalement des villes sans code postal
@@ -98,7 +98,7 @@ allsujet_num_rue_clean.dat$Commune[allsujet_num_rue_clean.dat$Commune == "VIROFA
 # On complete, apres verif de pas eccraser dans le cas de plusieurs codes postaux pour une commune 
 # cas pb des villes a arrondissement Lyon, bordeau
 # attention aussi au homonymes
-allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "AGEN",] <- "47000"
+allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "AGEN"] <- "47000"
 allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "AIGLUN"] <- "04510"
 allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "ANNECY"] <- "74000"
 allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune == "ANNECY LE VIEUX"] <- "74940"
@@ -284,5 +284,17 @@ table(nb_stade_vie_sujet$Sum_adolescence, nb_stade_vie_sujet$result_type, useNA 
 
 
 produit_geocode$Importance_adresse <- produit_geocode$Naissance + produit_geocode$Enfance + produit_geocode$Adolescence
+
+
 table(produit_geocode$Importance_adresse, produit_geocode$result_type)
 
+
+# 3- un export pour passer en SIG et faire du geocodage à la main =======================
+
+produit_geocode.shp <- sf::st_as_sf(produit_geocode, coords = c("longitude", "latitude"), crs = 4326
+                                    , na.fail = FALSE)
+
+produit_geocode.shp$source_loc <- "geocodage"
+names(produit_geocode.shp)
+
+st_write(produit_geocode.shp, "data/geocode.geojson")
