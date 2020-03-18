@@ -2,8 +2,9 @@
 .Rhistory
 .RData
 .Ruserdata
-# ignore de data et visu
+# ignore de data, visu et rapport
 /data
 /visu
+/rapport
 # rendu Rmarkdown
 *.html

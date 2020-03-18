@@ -1,5 +1,5 @@
 ## script du 03/03/2020
-# Mie en forne et EDA "contexte" des sujets Gouramic
+# Mise en forme et EDA "contexte" des sujets Gouramic
 # convention de code .dat <- tableau
 
 ##.###################################################################################33
