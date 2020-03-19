@@ -7,7 +7,7 @@
 # 1- chargement des packages et données ========================
 
 
-pkgs <-  c("dplyr","stringr", "lubridate", "ggplot2", "banR", "sf")
+pkgs <-  c("dplyr","stringr", "lubridate", "ggplot2", "sf")
 inst <- lapply(pkgs, library, character.only = TRUE)
 
 # version CLB / ESRI
@@ -17,7 +17,7 @@ geocodage_clb.shp <- sf::st_read("data/Geocoding_Result.shp", stringsAsFactors =
 str(geocodage_clb.shp)
 
 # Version EVS / Bano cf : sujet_gouranic_eda. R
-# une partie a été aussi faite à la main cf rapport à faire
+# une partie a été aussi faite à la main cf : rapport/geocodage_sujet.Rmd 
 
 geocodage_evs.shp <- sf::st_read("data/geocodev2.geojson", stringsAsFactors = FALSE)
 

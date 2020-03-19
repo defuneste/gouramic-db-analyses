@@ -81,7 +81,7 @@ sujet.dat$adresse <- as.factor(sujet.dat$adresse) # pe plus caractere
 
 str(sujet.dat)
 
-# si on veut passer en tidyr et on vire le pas necessaire pour le moment
+# si on veut passer en tidyr et on change date. Pas necessaire pour le moment
 sujet.dat <- tidyr::gather(sujet.dat, "Date_Debut", "Date_Fin", key = "type_date", value = "date") %>%
                     dplyr::select(sujet, adresse, type_date, date)
 

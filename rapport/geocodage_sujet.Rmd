@@ -2,20 +2,45 @@
 title: "Geocodage Sujet Gouramic"
 author: "Olivier Leroy"
 date: "19 mars 2020"
+lang: fr-FR
 output: 
-    pdf_document:
+    bookdown::html_document2:
+        theme: readable
         toc: true
+        toc_float: true
+        number_sections: true
         toc_depth: 3
-        fig_caption: TRUE
-        keep_md: TRUE
-    
+        fig_caption: true
+        keep_md: true
+        code_folding: hide
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+pkgs <-  c("dplyr","stringr", "lubridate", "ggplot2", "sf")
+inst <- lapply(pkgs, library, character.only = TRUE)
 ```
 
-# Présentation des Objectifs et du jeux de données 
+C'est un document de travail. Ses objectifs sont : 
+
+* Communiquer entre l'equipe 
+* Garder traces des différentes modifications sur le jeux de données et des operations pour le geocodage
+* Identifier des contraintes pour la construction de la base et des analyses qui suivront
+
+
+# Présentation du jeux de données 
+
+```{r chargement des données}
+allsujet_clean.dat <- readRDS("../data/allsujet_clean.rds")
+
+```
+
+
+## Source des données 
+
+Le geocodage c'est fait à partir d'un jeu de données constitué via des enquêtes telephoniques [si on a une ref.]. La nature meme des intérrogations comme savoir où habitaient certains sujets lors de leur naissance fait qu'il y a des des manques dans le jeu de donnée (meme si dans la mesure du possible un des parents était présent [à confirmer]). 
+
+
 
 
 # Traitements 
