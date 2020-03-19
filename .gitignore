@@ -5,6 +5,8 @@
 # ignore de data, visu et rapport
 /data
 /visu
-/rapport
+/rapport/image
 # rendu Rmarkdown
 *.html
+*.md
+*.pdf
