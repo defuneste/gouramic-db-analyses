@@ -31,6 +31,8 @@ C'est un document de travail. Ses objectifs sont :
 # Présentation du jeux de données 
 
 ```{r chargement des données}
+# c'est un fichier un peu nettoyer et reorganiser cf detail
+# Prétraitement_etl/clean_order_all_sujet.r
 allsujet_clean.dat <- readRDS("../data/allsujet_clean.rds")
 
 ```
@@ -39,6 +41,20 @@ allsujet_clean.dat <- readRDS("../data/allsujet_clean.rds")
 ## Source des données 
 
 Le geocodage c'est fait à partir d'un jeu de données constitué via des enquêtes telephoniques [si on a une ref.]. La nature meme des intérrogations comme savoir où habitaient certains sujets lors de leur naissance fait qu'il y a des des manques dans le jeu de donnée (meme si dans la mesure du possible un des parents était présent [à confirmer]). 
+
+Ce jeu comprends `r nrow(allsujet_clean.dat)` lignes pour `r length(unique(substr(allsujet_clean.dat$Id_cart, 1,7)))` sujets. 
+
+```{r}
+allsujet_clean.dat %>% 
+    mutate(ID_VISITE = as.numeric(str_extract(allsujet_clean.dat$Id_cart, pattern = "[0-9]{1,2}?$")),
+           ID_SECONDAIRE = substr(allsujet_clean.dat$Id_cart, 1,7)) %>% 
+    dplyr::group_by(ID_SECONDAIRE) %>% 
+    dplyr::summarize(nb_adresse = max(ID_VISITE)) %>% 
+    ggplot(aes(nb_adresse)) +
+    geom_histogram(binwidth = 1, color = "white" ) +
+    labs(x = "Nombre maximum d'adresses",
+         y = "Nombre")
+```
 
 
 
