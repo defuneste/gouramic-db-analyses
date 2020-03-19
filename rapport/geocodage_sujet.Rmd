@@ -40,11 +40,16 @@ allsujet_clean.dat <- readRDS("../data/allsujet_clean.rds")
 
 ## Source des données 
 
-Le geocodage c'est fait à partir d'un jeu de données constitué via des enquêtes telephoniques [si on a une ref.]. La nature meme des intérrogations comme savoir où habitaient certains sujets lors de leur naissance fait qu'il y a des des manques dans le jeu de donnée (meme si dans la mesure du possible un des parents était présent [à confirmer]). 
+Le geocodage c'est fait à partir d'un jeu de données constitué via des enquêtes telephoniques [si on a une ref.]. La nature meme des intérrogations comme savoir où habitaient certains sujets lors de leur naissance fait qu'il y a des manques dans le jeu de données (meme si dans la mesure du possible un des parents était présent [à confirmer]). 
 
-Ce jeu comprends `r nrow(allsujet_clean.dat)` lignes pour `r length(unique(substr(allsujet_clean.dat$Id_cart, 1,7)))` sujets. 
 
-```{r}
+## Nombre d'adresse par sujet
+
+Ce jeu comprends `r nrow(allsujet_clean.dat)` lignes pour `r length(unique(substr(allsujet_clean.dat$Id_cart, 1,7)))` sujets. La distribution du nombre d'adresses par sujet (\@ref(fig:histonbadressemax)) présente une queue de distribution légérement decentrée sur la droite avec un mode autour de sa moyenne (6,3 adresses/sujet). 
+
+(ref:histonbadressemax) Distribution du nombre d'adresses par sujet
+
+```{r histonbadressemax, fig.cap="(ref:histonbadressemax)", fig.align = 'center'}
 allsujet_clean.dat %>% 
     mutate(ID_VISITE = as.numeric(str_extract(allsujet_clean.dat$Id_cart, pattern = "[0-9]{1,2}?$")),
            ID_SECONDAIRE = substr(allsujet_clean.dat$Id_cart, 1,7)) %>% 

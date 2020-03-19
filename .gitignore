@@ -6,6 +6,7 @@
 /data
 /visu
 /rapport/image
+/rapport/geocodage_sujet_files
 # rendu Rmarkdown
 *.html
 *.md
