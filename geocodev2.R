@@ -23,3 +23,4 @@ geocodage_evs.shp <- sf::st_read("data/geocodev2.geojson", stringsAsFactors = FA
 
 str(geocodage_evs.shp)
 
+

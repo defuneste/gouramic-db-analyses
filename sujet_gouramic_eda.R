@@ -16,6 +16,7 @@ inst <- lapply(pkgs, library, character.only = TRUE)
 
 # 2 - Mise en forme : ici  Prétraitement_ETL/clean_order_all_sujet.R ================
 
+allsujet.dat <- openxlsx::read.xlsx("data/all_Sujets.xlsx")
 allsujet_clean.dat <- readRDS("data/allsujet_clean.rds")
 produit_geocode <- readRDS("data/produit_geocode.rds")
 
@@ -26,10 +27,10 @@ produit_geocode %>%
 summary(as.factor(produit_geocode$result_type))
 
 ##.###################################################################################33
-## II. quelques stats à garder en tête / EDA ====
+## II. Quelques stats à garder en tête / EDA ====
 ##.#################################################################################33
 
-# 1- quelques stats à garder en tête / EDA =============
+# 1a- Quelques stats à garder en tête / EDA =============
 # sans doute séparer après avoir nettoyer 
 
 # 1155 sujet / id unique
@@ -54,11 +55,28 @@ allsujet.dat %>%
                      sd_adresse = sd(nb_adresse))
 
 # pour les dates de naissance
-allsujet.dat %>% 
-    ggplot(aes(x = year(date_birth_p))) +
+allsujet_clean.dat %>% 
+    ggplot(aes(x = year(Date_birth))) +
     geom_histogram(binwidth = 1, color = "white" ) + 
     labs(x = "Années de naissance", y = "Nombre de sujets")
 
+
+#1b- Adresses manquantes ===================
+
+allsujet_clean.dat %>% 
+    mutate(Nun_adresse = as.numeric(str_extract(allsujet_clean.dat$Id_cart, pattern = "[0-9]{1,2}?$"))) %>% 
+    filter(is.na(allsujet_clean.dat$Commune)) %>% 
+    ggplot(aes(x = Nun_adresse)) +
+    geom_histogram(binwidth = 1, color = "white" ) +
+    labs(y = "Nombre")
+
+allsujet_clean.dat[is.na(allsujet_clean.dat$Commune),]
+View(allsujet.dat[is.na(allsujet.dat$CP_commune_p),])
+
+
+#ici charcher affiche_un_sujet
+
+affiche_un_sujet("01_0598")
 
 # 2- Determiner des adresses correspondantes à des stades de vie d’intérêt ======
 # la naissance doit correspondre à la premiere adresse

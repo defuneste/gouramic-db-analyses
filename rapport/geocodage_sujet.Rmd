@@ -62,6 +62,41 @@ allsujet_clean.dat %>%
 ```
 
 
+Il nous faut ici nous attarder sur la notion "d'adresse". Pour le moment cette dernière est juste une incrémentation lors d'un changement d'adresse ou lors d'un passage dans une résidence secondaire. Ainsi le sujet 01_0001 a pour adresse, dans l'ordre, "1", "2", "3", "4", "5". Qu'importe si "3" et son retour à "1" et que "5" correspond à sa résidence de vacances (où il peut y aller presque tous les ans). 
+
+Il va être important pour la base de données de clarifier cela et de bien considerer que l'on a bien une seule adresse mais distincte en dates.
 
 
-# Traitements 
+
+# Traitements de géocodage
+
+Il y a eu deux traitements un effectué par le CLB via ESRI [ref] et un effectué par EVS via l'API d'Etalab [ref]. 
+
+Avant de les présenter nous pouvons regarder les sujets comportants trops de valeurs manquantes risquant de rendre tout geocodage imposible. 
+
+## Valeurs manquantes du jeu de données.
+
+Il y a `nrow allsujet_clean.dat[is.na(allsujet_clean.dat$Commune),]` communes d'adresse manquantes
+Le graphique n \@ref(fig:adressemanquantes) représente la répartition des valeurs manquantes dans le numero d'adresse. On peut constater que la majorité des cas est pour la première adresse. 
+
+(ref:adressemanquantes) Répartition des valeurs manquantes par "Numéro d'adresse"
+
+```{r adressemanquantes, fig.cap="(ref:adressemanquantes)", fig.align = 'center'}
+allsujet_clean.dat %>% 
+    mutate(Nun_adresse = as.numeric(str_extract(allsujet_clean.dat$Id_cart, pattern = "[0-9]{1,2}?$"))) %>% 
+    filter(is.na(allsujet_clean.dat$Commune)) %>% 
+    ggplot(aes(x = Nun_adresse)) +
+    geom_histogram(binwidth = 1, color = "white" ) +
+    labs(y = "Nombre")
+```
+
+
+
+
+## Geocodage
+
+```{r chargementgeocodage, include=FALSE}
+geocodage_evs.shp <- sf::st_read("../data/geocodev2.geojson", stringsAsFactors = FALSE)
+geocodage_clb.shp <- sf::st_read("../data/Geocoding_Result.shp", stringsAsFactors = FALSE)
+```
+
