@@ -70,13 +70,24 @@ allsujet_clean.dat %>%
     geom_histogram(binwidth = 1, color = "white" ) +
     labs(y = "Nombre")
 
+#verif si ce sont pas mes transformations qui ont introduit ces NA, reponse : non 
 allsujet_clean.dat[is.na(allsujet_clean.dat$Commune),]
 View(allsujet.dat[is.na(allsujet.dat$CP_commune_p),])
 
+temp <- allsujet_clean.dat %>% 
+    mutate(Nun_adresse = as.numeric(str_extract(allsujet_clean.dat$Id_cart, pattern = "[0-9]{1,2}?$")),
+           Sujet = substr(allsujet_clean.dat$Id_cart, 1,7)) %>% 
+    filter(Sujet %in% allsujet.dat$ID_SECONDAIRE[is.na(allsujet.dat$CP_commune_p)]) %>% 
+    group_by(Sujet) %>% 
+    dplyr::summarize(nb_adresse = max(Nun_adresse)) 
+
+
+
+allsujet.dat$ID_SECONDAIRE[is.na(allsujet.dat$CP_commune_p)]
 
 #ici charcher affiche_un_sujet
 
-affiche_un_sujet("01_0598")
+affiche_un_sujet("01_0095")
 
 # 2- Determiner des adresses correspondantes à des stades de vie d’intérêt ======
 # la naissance doit correspondre à la premiere adresse

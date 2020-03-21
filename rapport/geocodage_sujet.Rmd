@@ -67,17 +67,13 @@ Il nous faut ici nous attarder sur la notion "d'adresse". Pour le moment cette d
 Il va être important pour la base de données de clarifier cela et de bien considerer que l'on a bien une seule adresse mais distincte en dates.
 
 
-
-# Traitements de géocodage
-
-Il y a eu deux traitements un effectué par le CLB via ESRI [ref] et un effectué par EVS via l'API d'Etalab [ref]. 
-
 Avant de les présenter nous pouvons regarder les sujets comportants trops de valeurs manquantes risquant de rendre tout geocodage imposible. 
 
 ## Valeurs manquantes du jeu de données.
 
-Il y a `nrow allsujet_clean.dat[is.na(allsujet_clean.dat$Commune),]` communes d'adresse manquantes
-Le graphique n \@ref(fig:adressemanquantes) représente la répartition des valeurs manquantes dans le numero d'adresse. On peut constater que la majorité des cas est pour la première adresse. 
+Il y a `r nrow allsujet_clean.dat[is.na(allsujet_clean.dat$Commune),]` communes d'adresses manquantes sur 46 sujets (un sujet possède 3 adresses manqantes).
+
+Le graphique n \@ref(fig:adressemanquantes) représente la répartition des valeurs manquantes dans le numero d'adresse. On peut constater que la majorité des cas sont pour la première adresse. 
 
 (ref:adressemanquantes) Répartition des valeurs manquantes par "Numéro d'adresse"
 
@@ -91,6 +87,10 @@ allsujet_clean.dat %>%
 ```
 
 
+
+# Traitements de géocodage
+
+Il y a eu deux traitements un effectué par le CLB via ESRI [ref] et un effectué par EVS via l'API d'Etalab [ref]. 
 
 
 ## Geocodage
