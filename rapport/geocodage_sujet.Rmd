@@ -23,8 +23,8 @@ inst <- lapply(pkgs, library, character.only = TRUE)
 
 C'est un document de travail. Ses objectifs sont : 
 
-* Communiquer entre l'equipe 
-* Garder traces des différentes modifications sur le jeux de données et des operations pour le geocodage
+* Communiquer dans l’équipe 
+* Garder traces des différentes modifications sur le jeux de données et des opérations pour le geocodage
 * Identifier des contraintes pour la construction de la base et des analyses qui suivront
 
 
@@ -33,6 +33,7 @@ C'est un document de travail. Ses objectifs sont :
 ```{r chargement des données}
 # c'est un fichier un peu nettoyer et reorganiser cf detail
 # Prétraitement_etl/clean_order_all_sujet.r
+allsujet.dat <- openxlsx::read.xlsx("../data/all_Sujets.xlsx")
 allsujet_clean.dat <- readRDS("../data/allsujet_clean.rds")
 
 ```
@@ -40,12 +41,12 @@ allsujet_clean.dat <- readRDS("../data/allsujet_clean.rds")
 
 ## Source des données 
 
-Le geocodage c'est fait à partir d'un jeu de données constitué via des enquêtes telephoniques [si on a une ref.]. La nature meme des intérrogations comme savoir où habitaient certains sujets lors de leur naissance fait qu'il y a des manques dans le jeu de données (meme si dans la mesure du possible un des parents était présent [à confirmer]). 
+Le geocodage c'est fait à partir d'un jeu de données constitué via des enquêtes téléphoniques [si on a une ref.]. La nature même des interrogations comme savoir où habitaient certains sujets lors de leur naissance fait qu'il y a des manques dans le jeu de données (même si dans la mesure du possible un des parents était présent [à confirmer]). 
 
 
 ## Nombre d'adresse par sujet
 
-Ce jeu comprends `r nrow(allsujet_clean.dat)` lignes pour `r length(unique(substr(allsujet_clean.dat$Id_cart, 1,7)))` sujets. La distribution du nombre d'adresses par sujet (\@ref(fig:histonbadressemax)) présente une queue de distribution légérement decentrée sur la droite avec un mode autour de sa moyenne (6,3 adresses/sujet). 
+Ce jeu comprends `r nrow(allsujet_clean.dat)` lignes pour `r length(unique(substr(allsujet_clean.dat$Id_cart, 1,7)))` sujets. La distribution du nombre d'adresses par sujet (\@ref(fig:histonbadressemax)) présente une queue de distribution légèrement décentrée sur la droite avec un mode autour de sa moyenne (6,3 adresses/sujet). 
 
 (ref:histonbadressemax) Distribution du nombre d'adresses par sujet
 
@@ -61,19 +62,24 @@ allsujet_clean.dat %>%
          y = "Nombre")
 ```
 
-
 Il nous faut ici nous attarder sur la notion "d'adresse". Pour le moment cette dernière est juste une incrémentation lors d'un changement d'adresse ou lors d'un passage dans une résidence secondaire. Ainsi le sujet 01_0001 a pour adresse, dans l'ordre, "1", "2", "3", "4", "5". Qu'importe si "3" et son retour à "1" et que "5" correspond à sa résidence de vacances (où il peut y aller presque tous les ans). 
 
-Il va être important pour la base de données de clarifier cela et de bien considerer que l'on a bien une seule adresse mais distincte en dates.
+Il va être important pour la base de données de clarifier cela et de bien considérer que l'on a bien une seule adresse mais distincte en dates.
 
 
-Avant de les présenter nous pouvons regarder les sujets comportants trops de valeurs manquantes risquant de rendre tout geocodage imposible. 
+Avant de les présenter nous pouvons regarder les sujets comportant trop de valeurs manquantes risquant de rendre tout geocodage impossible. 
 
 ## Valeurs manquantes du jeu de données.
 
-Il y a `r nrow allsujet_clean.dat[is.na(allsujet_clean.dat$Commune),]` communes d'adresses manquantes sur 46 sujets (un sujet possède 3 adresses manqantes).
+Il y a `r nrow(allsujet_clean.dat[is.na(allsujet_clean.dat$Commune),])` communes d'adresses manquantes sur 46 sujets (un sujet possède 3 adresses manquantes). L'absence de commune correspond (sauf dans 3 cas et nous y reviendrons) à une absence totale d informations. 
 
-Le graphique n \@ref(fig:adressemanquantes) représente la répartition des valeurs manquantes dans le numero d'adresse. On peut constater que la majorité des cas sont pour la première adresse. 
+Le graphique  \@ref(fig:adressemanquantes) et le tableau \@ref(tab:tableauNA) représente la répartition des valeurs manquantes dans le numéro d'adresse. On peut constater que la majorité des cas (31/48) sont pour la première adresse. Le tableau représente le sujet le numéro d'adresse (`Num_adresse`), le nombre de valeurs manquantes pour un même sujet (`Nb_na`) et le nombre d'adresse par par sujet (`Max_adresse`). 
+
+Ainsi, on peut constater que les 31 sujets avec leur première adresse de manquante n'en ont pas d'autres. Ce sont des sujets que nous ne pouvons garder pour notre étude, **ce qui diminue le nombre de cas de 1155 à 1124** (et change le graphique \@ref(fig:histonbadressemax) et statistiques associées). 
+
+Dans les cas où l'adresse manquante n'est pas la première on peut observer deux situations. La première semble correspondre à des cas où c'est la dernière (ou les dans un cas) adresse qui n'est pas renseignée (14/17 sujets). Peut-on supposer que cette adresse serait en trop (une erreur dans l'encodage par exemple) ? Si c'est bien ce cas il nous faut supprimer ces adresses. 
+
+La seconde correspond aux trois cas mentionnés plus haut. Ici l'adresse semble difficile: une adresse en allemagne et deux dans camping sans beaucoup d'information.
 
 (ref:adressemanquantes) Répartition des valeurs manquantes par "Numéro d'adresse"
 
@@ -86,6 +92,30 @@ allsujet_clean.dat %>%
     labs(y = "Nombre")
 ```
 
+
+
+```{r tableauNA, results='asis'}
+adresse_NA <-  allsujet_clean.dat %>% 
+    mutate(Num_adresse = as.numeric(str_extract(allsujet_clean.dat$Id_cart, pattern = "[0-9]{1,2}?$")),
+           Sujet = substr(allsujet_clean.dat$Id_cart, 1,7)) %>% 
+    filter(Sujet %in% allsujet.dat$ID_SECONDAIRE[is.na(allsujet.dat$CP_commune_p)]) %>% 
+    group_by(Sujet) %>% 
+    summarise(Nb_na = sum(is.na(Commune)),
+              Max_adresse = max(Num_adresse) )
+
+cat("<Tableau>",paste0("<caption>", "(#tab:tableauNA)", ' Sujets et adresses avec des valeurs manquantes explicites (NA)', "</caption>"),"</tableau>", sep ="\n")
+
+
+DT::datatable(allsujet_clean.dat %>% 
+    mutate(Num_adresse = as.numeric(str_extract(allsujet_clean.dat$Id_cart, pattern = "[0-9]{1,2}?$")),
+           Sujet = substr(allsujet_clean.dat$Id_cart, 1,7)) %>% 
+    filter(Sujet %in% allsujet.dat$ID_SECONDAIRE[is.na(allsujet.dat$CP_commune_p)]) %>% 
+    full_join(adresse_NA, by = c("Sujet", "Sujet")) %>% 
+    filter(is.na(Commune)) %>% 
+    select(Sujet, Num_adresse, Nb_na, Max_adresse))
+
+
+```
 
 
 # Traitements de géocodage

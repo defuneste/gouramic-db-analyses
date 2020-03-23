@@ -74,13 +74,23 @@ allsujet_clean.dat %>%
 allsujet_clean.dat[is.na(allsujet_clean.dat$Commune),]
 View(allsujet.dat[is.na(allsujet.dat$CP_commune_p),])
 
-temp <- allsujet_clean.dat %>% 
-    mutate(Nun_adresse = as.numeric(str_extract(allsujet_clean.dat$Id_cart, pattern = "[0-9]{1,2}?$")),
+adresse_NA <-  allsujet_clean.dat %>% 
+    mutate(Num_adresse = as.numeric(str_extract(allsujet_clean.dat$Id_cart, pattern = "[0-9]{1,2}?$")),
            Sujet = substr(allsujet_clean.dat$Id_cart, 1,7)) %>% 
     filter(Sujet %in% allsujet.dat$ID_SECONDAIRE[is.na(allsujet.dat$CP_commune_p)]) %>% 
     group_by(Sujet) %>% 
-    dplyr::summarize(nb_adresse = max(Nun_adresse)) 
+    summarise(Nb_na = sum(is.na(Commune)),
+              Max_adresse = max(Num_adresse) )
 
+#tableau pour avoir la place des valeurs manquantes dans le num adresse
+
+allsujet_clean.dat %>% 
+    mutate(Num_adresse = as.numeric(str_extract(allsujet_clean.dat$Id_cart, pattern = "[0-9]{1,2}?$")),
+           Sujet = substr(allsujet_clean.dat$Id_cart, 1,7)) %>% 
+    filter(Sujet %in% allsujet.dat$ID_SECONDAIRE[is.na(allsujet.dat$CP_commune_p)]) %>% 
+    full_join(adresse_NA, by = c("Sujet", "Sujet")) %>% 
+    filter(is.na(Commune)) %>% 
+    select(Sujet, Num_adresse, Nb_na, Max_adresse)
 
 
 allsujet.dat$ID_SECONDAIRE[is.na(allsujet.dat$CP_commune_p)]
@@ -161,7 +171,7 @@ affiche_un_sujet <- function(un_Id_carto) {
         dplyr::filter(ID_SECONDAIRE == un_Id_carto)
                     }
 
-affiche_un_sujet("22_1055")
+affiche_un_sujet("15_0269")
 
 # pour les resultats du geocodage
 affiche_une_loc <- function(un_sujet) {
