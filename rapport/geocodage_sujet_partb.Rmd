@@ -1,0 +1,36 @@
+---
+title: "Géocodage Sujet Gouramic partB"
+author: "Olivier Leroy"
+date: "24 mars 2020"
+lang: fr-FR
+output: 
+    bookdown::html_document2:
+        theme: readable
+        toc: true
+        toc_float: true
+        number_sections: true
+        toc_depth: 3
+        fig_caption: true
+        keep_md: true
+        code_folding: hide
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+pkgs <-  c("dplyr","stringr", "lubridate", "ggplot2", "sf")
+inst <- lapply(pkgs, library, character.only = TRUE)
+```
+
+# Traitements de géocodage
+
+Il y a eu deux traitements un effectué par le CLB via ESRI [ref] et un effectué par EVS via l'API d'Etalab [ref]. 
+
+
+## Geocodage
+
+```{r chargementgeocodage, include=FALSE}
+geocodage_evs.shp <- sf::st_read("../data/geocodev2.geojson", stringsAsFactors = FALSE)
+geocodage_clb.shp <- sf::st_read("../data/Geocoding_Result.shp", stringsAsFactors = FALSE)
+```
+

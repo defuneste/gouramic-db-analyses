@@ -74,6 +74,7 @@ allsujet_clean.dat %>%
 allsujet_clean.dat[is.na(allsujet_clean.dat$Commune),]
 View(allsujet.dat[is.na(allsujet.dat$CP_commune_p),])
 
+#tableau pour avoir la place des valeurs manquantes dans le num adresse
 adresse_NA <-  allsujet_clean.dat %>% 
     mutate(Num_adresse = as.numeric(str_extract(allsujet_clean.dat$Id_cart, pattern = "[0-9]{1,2}?$")),
            Sujet = substr(allsujet_clean.dat$Id_cart, 1,7)) %>% 
@@ -82,8 +83,9 @@ adresse_NA <-  allsujet_clean.dat %>%
     summarise(Nb_na = sum(is.na(Commune)),
               Max_adresse = max(Num_adresse) )
 
-#tableau pour avoir la place des valeurs manquantes dans le num adresse
 
+# production de ce tableau
+# on passe par un join pour relier l'adresse au carac du sujet
 allsujet_clean.dat %>% 
     mutate(Num_adresse = as.numeric(str_extract(allsujet_clean.dat$Id_cart, pattern = "[0-9]{1,2}?$")),
            Sujet = substr(allsujet_clean.dat$Id_cart, 1,7)) %>% 
@@ -95,7 +97,24 @@ allsujet_clean.dat %>%
 
 allsujet.dat$ID_SECONDAIRE[is.na(allsujet.dat$CP_commune_p)]
 
-#ici charcher affiche_un_sujet
+
+# stats de base recalculée
+
+# filtrer les NA
+allsujet_clean.dat <- allsujet_clean.dat %>% 
+    filter(!is.na(Commune))
+
+
+allsujet_clean.dat %>% 
+    dplyr::mutate(ID_SECONDAIRE = substr(allsujet_clean.dat$Id_cart, 1,7),
+                  ID_VISITE = as.numeric(str_extract(allsujet_clean.dat$Id_cart, pattern = "[0-9]{1,2}?$"))) %>% 
+    dplyr::group_by(ID_SECONDAIRE) %>% 
+    dplyr::summarize(nb_adresse = max(ID_VISITE)) %>% 
+    dplyr::summarize(mean_adresse = mean(nb_adresse),
+                     sd_adresse = sd(nb_adresse))
+
+
+#ici charger affiche_un_sujet
 
 affiche_un_sujet("01_0095")
 

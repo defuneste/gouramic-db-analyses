@@ -1,5 +1,5 @@
 ---
-title: "Geocodage Sujet Gouramic"
+title: "Géocodage Sujet Gouramic partA"
 author: "Olivier Leroy"
 date: "19 mars 2020"
 lang: fr-FR
@@ -24,7 +24,7 @@ inst <- lapply(pkgs, library, character.only = TRUE)
 C'est un document de travail. Ses objectifs sont : 
 
 * Communiquer dans l’équipe 
-* Garder traces des différentes modifications sur le jeux de données et des opérations pour le geocodage
+* Garder traces des différentes modifications sur le jeux de données et des opérations pour le géocodage
 * Identifier des contraintes pour la construction de la base et des analyses qui suivront
 
 
@@ -62,16 +62,15 @@ allsujet_clean.dat %>%
          y = "Nombre")
 ```
 
-Il nous faut ici nous attarder sur la notion "d'adresse". Pour le moment cette dernière est juste une incrémentation lors d'un changement d'adresse ou lors d'un passage dans une résidence secondaire. Ainsi le sujet 01_0001 a pour adresse, dans l'ordre, "1", "2", "3", "4", "5". Qu'importe si "3" et son retour à "1" et que "5" correspond à sa résidence de vacances (où il peut y aller presque tous les ans). 
+Il nous faut ici nous attarder sur la notion "d'adresse". Pour le moment cette dernière est juste une incrémentation lors d'un changement d'adresse ou lors d'un passage dans une résidence secondaire. Ainsi le sujet 01_0001 a pour adresse, dans l'ordre, "1", "2", "3", "4", "5". Qu'importe si "3" est son retour à "1" et que "5" correspond à sa résidence de vacances (où il peut y aller presque tous les ans). 
 
-Il va être important pour la base de données de clarifier cela et de bien considérer que l'on a bien une seule adresse mais distincte en dates.
+Il va être important pour la base de données de clarifier lorsqu'on a bien une seule adresse mais distincte en dates.
 
-
-Avant de les présenter nous pouvons regarder les sujets comportant trop de valeurs manquantes risquant de rendre tout geocodage impossible. 
+Avant de les présenter nous pouvons regarder les sujets comportant trop de valeurs manquantes risquant de rendre tout géocodage impossible. 
 
 ## Valeurs manquantes du jeu de données.
 
-Il y a `r nrow(allsujet_clean.dat[is.na(allsujet_clean.dat$Commune),])` communes d'adresses manquantes sur 46 sujets (un sujet possède 3 adresses manquantes). L'absence de commune correspond (sauf dans 3 cas et nous y reviendrons) à une absence totale d informations. 
+Il y a `r nrow(allsujet_clean.dat[is.na(allsujet_clean.dat$Commune),])` communes d'adresses manquantes sur 46 sujets (un sujet possède 3 adresses manquantes). L'absence de commune correspond (sauf dans 3 cas et nous y reviendrons) à une absence totale d information. 
 
 Le graphique  \@ref(fig:adressemanquantes) et le tableau \@ref(tab:tableauNA) représente la répartition des valeurs manquantes dans le numéro d'adresse. On peut constater que la majorité des cas (31/48) sont pour la première adresse. Le tableau représente le sujet le numéro d'adresse (`Num_adresse`), le nombre de valeurs manquantes pour un même sujet (`Nb_na`) et le nombre d'adresse par par sujet (`Max_adresse`). 
 
@@ -95,6 +94,7 @@ allsujet_clean.dat %>%
 
 
 ```{r tableauNA, results='asis'}
+# faire un tableau avec les NA par sujet et leur place dans les adresses de ce sujet
 adresse_NA <-  allsujet_clean.dat %>% 
     mutate(Num_adresse = as.numeric(str_extract(allsujet_clean.dat$Id_cart, pattern = "[0-9]{1,2}?$")),
            Sujet = substr(allsujet_clean.dat$Id_cart, 1,7)) %>% 
@@ -105,7 +105,8 @@ adresse_NA <-  allsujet_clean.dat %>%
 
 cat("<Tableau>",paste0("<caption>", "(#tab:tableauNA)", ' Sujets et adresses avec des valeurs manquantes explicites (NA)', "</caption>"),"</tableau>", sep ="\n")
 
-
+# production de ce tableau
+# on passe par un join pour relier l'adresse au carac du sujet
 DT::datatable(allsujet_clean.dat %>% 
     mutate(Num_adresse = as.numeric(str_extract(allsujet_clean.dat$Id_cart, pattern = "[0-9]{1,2}?$")),
            Sujet = substr(allsujet_clean.dat$Id_cart, 1,7)) %>% 
@@ -114,19 +115,30 @@ DT::datatable(allsujet_clean.dat %>%
     filter(is.na(Commune)) %>% 
     select(Sujet, Num_adresse, Nb_na, Max_adresse))
 
-
 ```
 
+## Nombre d'adresses par sujet arpès suupression des NA
 
-# Traitements de géocodage
-
-Il y a eu deux traitements un effectué par le CLB via ESRI [ref] et un effectué par EVS via l'API d'Etalab [ref]. 
-
-
-## Geocodage
-
-```{r chargementgeocodage, include=FALSE}
-geocodage_evs.shp <- sf::st_read("../data/geocodev2.geojson", stringsAsFactors = FALSE)
-geocodage_clb.shp <- sf::st_read("../data/Geocoding_Result.shp", stringsAsFactors = FALSE)
+```{r filtrerNA}
+# filtrer les NA
+allsujet_clean.dat <- allsujet_clean.dat %>% 
+                            filter(!is.na(Commune))
 ```
 
+Retirer les valeurs manquantes semble corriger un peu le nombre elevé de sujets avec une adresse (\@ref(fig:histonbadressemaxNA)). Le jeu comprends `r nrow(allsujet_clean.dat)` lignes pour `r length(unique(substr(allsujet_clean.dat$Id_cart, 1,7)))` sujets. Le nombre moyenne d'adresse par sujet passe à 6,78 avec un écart type de 3,37.
+
+
+(ref:histonbadressemax) Distribution du nombre d'adresses par sujet sans les valeurs manquantes
+ 
+```{r histonbadressemaxNA, fig.cap="(ref:histonbadressemaxNA)", fig.align = 'center'}
+
+allsujet_clean.dat %>% 
+    mutate(ID_VISITE = as.numeric(str_extract(allsujet_clean.dat$Id_cart, pattern = "[0-9]{1,2}?$")),
+           ID_SECONDAIRE = substr(allsujet_clean.dat$Id_cart, 1,7)) %>% 
+    dplyr::group_by(ID_SECONDAIRE) %>% 
+    dplyr::summarize(nb_adresse = max(ID_VISITE)) %>% 
+    ggplot(aes(nb_adresse)) +
+    geom_histogram(binwidth = 1, color = "white" ) +
+    labs(x = "Nombre maximum d'adresses",
+         y = "Nombre")
+```
