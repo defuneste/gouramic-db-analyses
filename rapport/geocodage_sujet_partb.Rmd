@@ -27,10 +27,44 @@ inst <- lapply(pkgs, library, character.only = TRUE)
 Il y a eu deux traitements un effectué par le CLB via ESRI [ref] et un effectué par EVS via l'API d'Etalab [ref]. 
 
 
-## Geocodage
-
 ```{r chargementgeocodage, include=FALSE}
+allsujet_SansNA.dat <- readRDS("../data/allsujet_cleanNA.rds")
 geocodage_evs.shp <- sf::st_read("../data/geocodev2.geojson", stringsAsFactors = FALSE)
 geocodage_clb.shp <- sf::st_read("../data/Geocoding_Result.shp", stringsAsFactors = FALSE)
 ```
 
+
+## Dictionnaire du geojson produit par BanR : geocode.geojson
+
+L'individu statistique ou la ligne correspond au couple sujet et adresse 
+
+* **Id_cart**  =  ID_carto (Sujet + adresse format : DD_DDDD_D )   
+
+* **Date_birth** = date de naissance (date)
+
+* **Date_start** = date de début de l'adresse (date_time)
+
+* **Date_end** = date de fin de l'adresse (date_time)
+
+* **Commune** = Nom de la commune 
+
+* **Info_sup** = concaténation deLieu_dit, Compl_add_p, pt_remarq_p 
+
+* **Adresse** = Rue + nom de rue 
+
+* **Code_postal** = Le code postal 
+
+* **result_label,  result_score,  result_type, result_id, result_housenumber, result_name,  result_street,   result_postcode,  result_city, result_context ,  result_citycode,  result_oldcitycode, result_oldcity,  result_district** = colonnes produites par l'[API](https://cran.r-project.org/web/packages/banR/vignettes/geocode.html). Je les ai gardé pour la verif, on les virera probablement une fois les données jugées "propres".  Parmi ces dernières deux sont un peu plus intéressante pour nous
+
+* **result_score** = un indice de 0-1 de confiance du géocodage (0 pas confiant, 1 très confiant : pas regardé comment il était calculé)
+
+* **result_type** = la précision du géocodage 
+
+Le code est [ici](https://github.com/defuneste/gouramic-db-analyses/blob/master/Pr%C3%A9traitement_ETL/clean_order_all_sujet.R)
+
+
+## dictionnaire de donnée de Geocoding_Result.shp
+
+
+
+# Geocodage

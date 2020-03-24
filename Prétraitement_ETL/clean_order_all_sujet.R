@@ -163,6 +163,12 @@ allsujet_num_rue_clean.dat$Code_postal[allsujet_num_rue_clean.dat$Commune ==  "Y
 
 saveRDS(allsujet_num_rue_clean.dat, "data/allsujet_clean.rds")
 
+# export sans les NA
+allsujet_clean_NA.dat <- allsujet_num_rue_clean.dat %>% 
+    filter(!is.na(Commune))
+
+saveRDS(allsujet_clean_NA.dat, "data/allsujet_cleanNA.rds")
+
 
 # il va falloir aller le chercher dans la liste des codes postaux
 # # https://www.data.gouv.fr/fr/datasets/base-officielle-des-codes-postaux/
