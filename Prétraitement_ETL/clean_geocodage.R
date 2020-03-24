@@ -35,7 +35,3 @@ geocodage_evs.shp$Date_birth <- as.Date(geocodage_evs.shp$Date_birth, origin = "
 geocodage_evs.shp$Date_start <- as.Date(geocodage_evs.shp$Date_start, origin = "1899-12-30")
 geocodage_evs.shp$Date_end <- as.Date(geocodage_evs.shp$Date_start, origin = "1899-12-30")
 
-
-hist(geocodage_evs.shp$Date_birth, breaks = "year")
-
-View(allsujet_SansNA.dat)

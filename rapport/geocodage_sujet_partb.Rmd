@@ -34,7 +34,7 @@ geocodage_clb.shp <- sf::st_read("../data/Geocoding_Result.shp", stringsAsFactor
 ```
 
 
-## Dictionnaire du geojson produit par BanR : geocode.geojson
+## Dictionnaire du geojson (geocode.geojson) produit par BanR : 
 
 L'individu statistique ou la ligne correspond au couple sujet et adresse 
 
@@ -59,6 +59,29 @@ L'individu statistique ou la ligne correspond au couple sujet et adresse
 * **result_score** = un indice de 0-1 de confiance du géocodage (0 pas confiant, 1 très confiant : pas regardé comment il était calculé)
 
 * **result_type** = la précision du géocodage 
+    - housnumber = numéro de rue
+    - street = à la rue
+    - locality = lieu dit ou localité
+    - municipality = commune..
+    - NA = pas pu localiser quoi que ce soit
+
+* **"Nun_adresse"** : ancien champ adresse
+
+* **"Naissance"** : 0/1 Première adresse du sujet (considéré par définition comme naissance, est ce correcte ?)
+
+* **interval_adresse** : Intervalle entre date_start et date_end. utile pour savoir si un stade de vie d'interet est dans tel ou tel interval cf  [lubridate](https://lubridate.tidyverse.org/articles/lubridate.html#time-intervals))
+
+* **Enfance** = 0/1 l'adresse est elle dans interval_adresse pour 7-10 ans 
+
+* **Adolescence**  = 0/1l'adresse est elle dans interval_adresse pour 11-15 ans
+
+* **sujet** = l'id du sujet
+
+* **Importance_adresse** = une somme de Naissance, Enfance et Adolesence pour identifier plus vite les adresses importantes nous manquants
+
+* **source_loc** = source du geocodage pour le moment ne prend que "geocodage" et "main" pour celles faites à la main
+
+* **geometry** = le champ geometry (la doc indique du wgs84 donc 4326 pour le scr)
 
 Le code est [ici](https://github.com/defuneste/gouramic-db-analyses/blob/master/Pr%C3%A9traitement_ETL/clean_order_all_sujet.R)
 
@@ -66,5 +89,21 @@ Le code est [ici](https://github.com/defuneste/gouramic-db-analyses/blob/master/
 ## dictionnaire de donnée de Geocoding_Result.shp
 
 
+* **Loc_name** correspond à la précision de la géolocalisation 
+    - 1_PointAdresse
+    - 2_AdresseInter
+    - 3_Voie
+    - 4_LieuDitHabit
+    - 5_ChefLieu
+    - 6_CodePostal
+    - 7_Ville
+    - NA
+    
+* **DisplayX et DisplayY** long/lat quand la Loc_name est différent de 1_PointAdresse
+
+* **ID_SECONDA** Correspond à l'ID du sujet
+
+* **ID_visite**
+    
 
 # Geocodage
