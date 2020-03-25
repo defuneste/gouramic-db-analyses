@@ -35,3 +35,31 @@ geocodage_evs.shp$Date_birth <- as.Date(geocodage_evs.shp$Date_birth, origin = "
 geocodage_evs.shp$Date_start <- as.Date(geocodage_evs.shp$Date_start, origin = "1899-12-30")
 geocodage_evs.shp$Date_end <- as.Date(geocodage_evs.shp$Date_start, origin = "1899-12-30")
 
+# a priori on a encore deux formats de date "my" et "dmy"
+geocodage_clb.shp$date_start <- parse_date_time(geocodage_clb.shp$date_start, orders = c("my", "dmy"))
+geocodage_clb.shp$date_end_a <- parse_date_time(geocodage_clb.shp$date_end_a, orders = c("my", "dmy"))
+
+
+# 3- Suppression de NA ================
+
+# bon j'aurais du garder une liste des sujet NA pour gagner du temps
+# tampis on va filtrer avec ce qui reste plutot que l'inverse des NA
+
+geocodage_evs_NA.shp <-  geocodage_evs.shp %>% 
+    filter(Id_cart  %in% allsujet_SansNA.dat$Id_cart)
+
+
+geocodage_clb_NA.shp <-  geocodage_clb.shp %>% 
+    filter(ID_CARTO  %in% allsujet_SansNA.dat$Id_cart)
+
+# 4- verif et maj du SRID  ===========
+
+st_crs(geocodage_evs_NA.shp) # ok
+
+# proj semble bien defini, il faut juste preciser le code EPSG
+# en faite non il faut verifier 
+# https://epsg.io/2154 
+# je trouve pas tout à fait la bonne lat mais cela ne semble pas poser de pb
+
+st_crs(geocodage_clb_NA.shp) <- "2154"
+

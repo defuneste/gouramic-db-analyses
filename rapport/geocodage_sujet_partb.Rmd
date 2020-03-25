@@ -34,7 +34,10 @@ geocodage_clb.shp <- sf::st_read("../data/Geocoding_Result.shp", stringsAsFactor
 ```
 
 
-## Dictionnaire du geojson (geocode.geojson) produit par BanR : 
+## Dictionnaire du geojson (geocode.geojson) produit par BanR
+
+<button class="btn btn-primary" data-toggle="collapse" data-target="#BlockName_dico1"> Affichage du dictionnaire </button>
+<div id="BlockName_dico1" class="collapse">
 
 L'individu statistique ou la ligne correspond au couple sujet et adresse 
 
@@ -85,11 +88,14 @@ L'individu statistique ou la ligne correspond au couple sujet et adresse
 
 Le code est [ici](https://github.com/defuneste/gouramic-db-analyses/blob/master/Pr%C3%A9traitement_ETL/clean_order_all_sujet.R)
 
+</div>
 
 ## dictionnaire de donnée de Geocoding_Result.shp
 
+<button class="btn btn-primary" data-toggle="collapse" data-target="#BlockName_dico2"> Affichage du dictionnaire </button>
+<div id="BlockName_dico2" class="collapse">
 
-* **Loc_name** correspond à la précision de la géolocalisation 
+* **Loc_name** : La précision de la géolocalisation 
     - 1_PointAdresse
     - 2_AdresseInter
     - 3_Voie
@@ -99,11 +105,29 @@ Le code est [ici](https://github.com/defuneste/gouramic-db-analyses/blob/master/
     - 7_Ville
     - NA
     
-* **DisplayX et DisplayY** long/lat quand la Loc_name est différent de 1_PointAdresse
+* **DisplayX et DisplayY** : long/lat quand la Loc_name est différent de 1_PointAdresse
 
-* **ID_SECONDA** Correspond à l'ID du sujet
+* **ID_SECONDA** : l'ID du sujet
 
-* **ID_visite**
-    
+* **ID_VISITE** : champ adresse 
+
+* **ID_CARTO** : ID_SECONDA_ID_CARTO
+
+* **date_start** et **date_end_a** : date de debut et fin de l'adresse
+
+* **COMMUNE** : Nom de la commune
+
+* **CP** : Code postal
+
+* **lieudit_p** : lieu dit mais pas toujours
+
+* **Adresse** : l'Adresse (num Rue + rue / lieu dit) 
+
+* **compl_add_** : Un complément d'adresse 
+
+* **geometry** : le champ geometry, en 2154 
+
+</div>
+
 
 # Geocodage
