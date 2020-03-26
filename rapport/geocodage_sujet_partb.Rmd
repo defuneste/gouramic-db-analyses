@@ -18,7 +18,7 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-pkgs <-  c("dplyr","stringr", "lubridate", "ggplot2", "sf")
+pkgs <-  c("dplyr","stringr", "lubridate", "ggplot2", "sf", "leaflet", "mapview")
 inst <- lapply(pkgs, library, character.only = TRUE)
 ```
 
@@ -129,5 +129,40 @@ Le code est [ici](https://github.com/defuneste/gouramic-db-analyses/blob/master/
 
 </div>
 
+## Statistiques et qualité des deux géocodages 
+
+```{r supresionNA}
+geocodage_evs_NA.shp <-  geocodage_evs.shp %>% 
+    filter(Id_cart  %in% allsujet_SansNA.dat$Id_cart)
+
+geocodage_clb_NA.shp <-  geocodage_clb.shp %>% 
+    filter(ID_CARTO  %in% allsujet_SansNA.dat$Id_cart)
+
+rm(geocodage_evs.shp, geocodage_clb.shp)
+```
+
+
+Les tableaux \@ref(tab:resulttypeevs) et \@ref(tab:resulttypeclb) montrent la répartition des adresses. Une partie (196 adresses) ont été recodé à la main pour le géocodage evs ce qui affecte un petit peu les comparaisons. 
+
+Les deux algos de géocodage utilisent une classification différente.  
+
+(ref:resulttypeevs) Répartition des adresses par types de localisation (géocodage BanR)
+
+```{r resulttypeevs}
+knitr::kable(table(geocodage_evs_NA.shp$result_type, useNA = "ifany"), 
+             col.names = c("Result_type","Nbr"),
+             caption = "(ref:resulttypeevs)")
+```
+
+(ref:resulttypeclb) Répartition des adresses par types de localisation (géocodage ESRI)
+
+```{r resulttypeclb}
+knitr::kable(table(geocodage_clb_NA.shp$Loc_name, useNA = "ifany"), 
+             col.names = c("Loc_name","Nbr"),
+             caption = "(ref:resulttypeclb)")
+```
+
 
 # Geocodage
+
+Le processus va être de verifier les points dans un leaflet et de corriger dans QGIS ? 

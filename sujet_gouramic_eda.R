@@ -20,12 +20,6 @@ allsujet.dat <- openxlsx::read.xlsx("data/all_Sujets.xlsx")
 allsujet_clean.dat <- readRDS("data/allsujet_clean.rds")
 produit_geocode <- readRDS("data/produit_geocode.rds")
 
-produit_geocode %>% 
-    ggplot(aes(result_score, fill = result_type)) +
-    geom_histogram(color = "white") 
-
-summary(as.factor(produit_geocode$result_type))
-
 ##.###################################################################################33
 ## II. Quelques stats à garder en tête / EDA ====
 ##.#################################################################################33
@@ -117,6 +111,15 @@ allsujet_clean.dat %>%
 #ici charger affiche_un_sujet
 
 affiche_un_sujet("01_0095")
+
+
+produit_geocode %>% 
+    ggplot(aes(result_score, fill = result_type)) +
+    geom_histogram(color = "white") 
+
+summary(as.factor(produit_geocode$result_type))
+
+
 
 # 2- Determiner des adresses correspondantes à des stades de vie d’intérêt ======
 # la naissance doit correspondre à la premiere adresse
