@@ -166,3 +166,24 @@ knitr::kable(table(geocodage_clb_NA.shp$Loc_name, useNA = "ifany"),
 # Geocodage
 
 Le processus va être de verifier les points dans un leaflet et de corriger dans QGIS ? 
+
+## Les valeurs manquantes 
+
+Elles sont encore 888 pour EVS et 48 pour le clb (cet écart s'expliquerait par le cheflieu/ville/code postal trop flou pour être utilisé). 
+
+### NA géocodage CLB
+
+Un extrait des 48 valeurs manquantes permet de se rendre compte que `COMMUNE` et `CP` sont issues d'un splice de "type `CP` prend les 5 premières valeurs et `COMMUNE` (-1) la suite".
+
+```{r NACLB}
+geocodage_clb_NA.shp %>% 
+    st_drop_geometry() %>% 
+    filter(is.na(Loc_name)) %>% 
+    select(Loc_name, ID_CARTO, COMMUNE, CP)
+```
+
+
+
+
+
+

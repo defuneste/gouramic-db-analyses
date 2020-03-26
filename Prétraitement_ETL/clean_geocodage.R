@@ -52,6 +52,8 @@ geocodage_evs_NA.shp <-  geocodage_evs.shp %>%
 geocodage_clb_NA.shp <-  geocodage_clb.shp %>% 
     filter(ID_CARTO  %in% allsujet_SansNA.dat$Id_cart)
 
+rm(geocodage_clb.shp, geocodage_evs.shp)
+
 # 4- verif et maj du SRID  ===========
 
 st_crs(geocodage_evs_NA.shp) # ok
@@ -61,5 +63,27 @@ st_crs(geocodage_evs_NA.shp) # ok
 # https://epsg.io/2154 
 # je trouve pas tout à fait la bonne lat mais cela ne semble pas poser de pb
 
-st_crs(geocodage_clb_NA.shp) <- "2154"
+st_crs(geocodage_clb_NA.shp) <- 2154
+
+##.###################################################################################33
+## II. Explorations et corrections des données de geocodage ====
+##.#################################################################################33
+
+# 1- Valeurs manquantes 
+
+# on regarde le NA
+# lié (en partie?) à un pb d'encodage
+geocodage_clb_NA.shp %>% 
+    st_drop_geometry() %>% 
+    filter(is.na(Loc_name)) %>% 
+    View()
+
+# on va regarder le géocodage coté banR
+
+NA_Loc_name <- geocodage_clb_NA.shp$ID_CARTO[is.na(geocodage_clb_NA.shp$Loc_name)]
+
+geocodage_evs_NA.shp %>% 
+    filter(Id_cart %in% NA_Loc_name) %>% 
+    View()
+
 

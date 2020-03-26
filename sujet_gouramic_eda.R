@@ -14,6 +14,9 @@
 pkgs <-  c("dplyr","stringr", "lubridate", "ggplot2", "banR", "sf")
 inst <- lapply(pkgs, library, character.only = TRUE)
 
+# fonctions utiles
+source("fonctions_gouramic.R")
+
 # 2 - Mise en forme : ici  Prétraitement_ETL/clean_order_all_sujet.R ================
 
 allsujet.dat <- openxlsx::read.xlsx("data/all_Sujets.xlsx")
@@ -98,7 +101,6 @@ allsujet.dat$ID_SECONDAIRE[is.na(allsujet.dat$CP_commune_p)]
 allsujet_clean.dat <- allsujet_clean.dat %>% 
     filter(!is.na(Commune))
 
-
 allsujet_clean.dat %>% 
     dplyr::mutate(ID_SECONDAIRE = substr(allsujet_clean.dat$Id_cart, 1,7),
                   ID_VISITE = as.numeric(str_extract(allsujet_clean.dat$Id_cart, pattern = "[0-9]{1,2}?$"))) %>% 
@@ -106,7 +108,6 @@ allsujet_clean.dat %>%
     dplyr::summarize(nb_adresse = max(ID_VISITE)) %>% 
     dplyr::summarize(mean_adresse = mean(nb_adresse),
                      sd_adresse = sd(nb_adresse))
-
 
 #ici charger affiche_un_sujet
 
@@ -119,8 +120,6 @@ produit_geocode %>%
 
 summary(as.factor(produit_geocode$result_type))
 
-
-
 # 2- Determiner des adresses correspondantes à des stades de vie d’intérêt ======
 # la naissance doit correspondre à la premiere adresse
 # pour la periode 8-9 doit on y mettre un buffer ? +/-1 une année -> 7-8-9-10
@@ -129,7 +128,6 @@ summary(as.factor(produit_geocode$result_type))
 # ici Adolescence, c'est un interval
 # au niveau adresse une adresse peut correspondre plusieurs stade de vie d'interet 
 # du coup je part en format long avec un champ /stade de vie il faudra en tenir compte dans le schema 
-
 
 # 2-a Naissance =========================
 # extraction du dernier num d'ID carto
@@ -187,25 +185,6 @@ produit_geocode %>%
     filter_at(vars(Date_start, Date_end), any_vars(is.na(.))) %>% 
     View()
 
-# fonction rapide d'explo/verif des données
-affiche_un_sujet <- function(un_Id_carto) {
-    allsujet.dat %>% 
-        dplyr::filter(ID_SECONDAIRE == un_Id_carto)
-                    }
-
-affiche_un_sujet("15_0269")
-
-# pour les resultats du geocodage
-affiche_une_loc <- function(un_sujet) {
-                        produit_geocode %>% 
-                            dplyr::filter(sujet == un_sujet) %>% 
-                            View()
-                            produit_geocode %>%  # c'est un peu laid 
-                                dplyr::filter(sujet == un_sujet) %>% 
-                                dplyr::select(Id_cart, Info_sup)
-}
-
-affiche_une_loc("02_0712")
 
 # 3-a via les valeurs manquantes dans les loc ==============
 
