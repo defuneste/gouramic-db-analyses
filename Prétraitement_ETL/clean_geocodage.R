@@ -11,7 +11,7 @@
 
 # 1- chargement des packages et données ========================
 
-pkgs <-  c("dplyr","stringr", "lubridate", "ggplot2", "sf")
+pkgs <-  c("dplyr","stringr", "lubridate", "ggplot2", "sf", "crosstalk")
 inst <- lapply(pkgs, library, character.only = TRUE)
 
 
@@ -86,4 +86,13 @@ geocodage_evs_NA.shp %>%
     filter(Id_cart %in% NA_Loc_name) %>% 
     View()
 
+# 2- besoin de modification 
 
+geocodage_evs_NA.shp$source_loc[geocodage_evs_NA.shp$Id_cart == "01_0437_6"] <- "Faux"
+geocodage_evs_NA.shp$source_loc[geocodage_evs_NA.shp$Id_cart == "01_0598_6"] <- "Faux"
+geocodage_evs_NA.shp$source_loc[geocodage_evs_NA.shp$Id_cart == "01_0598_6"] <- "Faux" 
+geocodage_evs_NA.shp$source_loc[geocodage_evs_NA.shp$Id_cart == "05_0601_4"] <- "Faux"
+geocodage_evs_NA.shp$source_loc[geocodage_evs_NA.shp$Id_cart == "13_0441_3"] <- "Faux"
+geocodage_evs_NA.shp$source_loc[geocodage_evs_NA.shp$Id_cart == "13_0441_4"] <- "Faux"
+geocodage_evs_NA.shp$source_loc[geocodage_evs_NA.shp$Id_cart == "16_0447_4"] <- "Faux"
+geocodage_evs_NA.shp$source_loc[geocodage_evs_NA.shp$Id_cart == "20_0755_2"] <- "Faux"

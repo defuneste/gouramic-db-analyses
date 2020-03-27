@@ -7,7 +7,6 @@ output:
     bookdown::html_document2:
         theme: readable
         toc: true
-        toc_float: true
         number_sections: true
         toc_depth: 3
         fig_caption: true
@@ -18,7 +17,7 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-pkgs <-  c("dplyr","stringr", "lubridate", "ggplot2", "sf", "leaflet", "mapview")
+pkgs <-  c("dplyr","stringr", "lubridate", "ggplot2", "sf", "leaflet", "crosstalk")
 inst <- lapply(pkgs, library, character.only = TRUE)
 ```
 
@@ -167,22 +166,77 @@ knitr::kable(table(geocodage_clb_NA.shp$Loc_name, useNA = "ifany"),
 
 Le processus va être de verifier les points dans un leaflet et de corriger dans QGIS ? 
 
+Quand une erreur est trouvée : modification de l'info source_loc :
+ 
+ * Locality : a refaire et info précise à la localité
+
 ## Les valeurs manquantes 
 
 Elles sont encore 888 pour EVS et 48 pour le clb (cet écart s'expliquerait par le cheflieu/ville/code postal trop flou pour être utilisé). 
 
 ### NA géocodage CLB
 
-Un extrait des 48 valeurs manquantes permet de se rendre compte que `COMMUNE` et `CP` sont issues d'un splice de "type `CP` prend les 5 premières valeurs et `COMMUNE` (-1) la suite".
+Un extrait des 48 (\@ref(tab:NAgeocodageCLB)) valeurs manquantes permet de se rendre compte que `COMMUNE` et `CP` sont issues d'un splice de "type `CP` prend les 5 premières valeurs et `COMMUNE` (-1) la suite".
 
-```{r NACLB}
-geocodage_clb_NA.shp %>% 
+```{r NAgeocodageCLB, results='asis'}
+
+cat("<Tableau>",paste0("<caption>", "(#tab:NAgeocodageCLB)", ' NA dans le géocodage du CLB', "</caption>"),"</tableau>", sep ="\n")
+
+DT::datatable(geocodage_clb_NA.shp %>% 
     st_drop_geometry() %>% 
     filter(is.na(Loc_name)) %>% 
-    select(Loc_name, ID_CARTO, COMMUNE, CP)
+    select(Loc_name, ID_CARTO, COMMUNE, CP))
 ```
 
 
+On peut ainsi comparer au 48 sujet/adresse du geocodage EVS : 
+
+<button class="btn btn-primary" data-toggle="collapse" data-target="#BlockName_NAgeocodageCLB2"> Correspondance géocodage EVS </button>
+<div id="BlockName_NAgeocodageCLB2" class="collapse">
+
+```{r NAgeocodageCLB2}
+NA_Loc_name <- geocodage_clb_NA.shp$ID_CARTO[is.na(geocodage_clb_NA.shp$Loc_name)]
+
+EVS_NA_CLB.shp <- SharedData$new(geocodage_evs_NA.shp %>% 
+    filter(Id_cart %in% NA_Loc_name))
+
+DT::datatable(EVS_NA_CLB.shp, rownames = FALSE)
+```
+
+</div>
+
+
+
+
+<button class="btn btn-primary" data-toggle="collapse" data-target="#BlockName_cartoNA"> Carto_correpsondance géocodage EVS </button>
+<div id="BlockName_cartoNA" class="collapse">
+
+```{r cartoNA}
+carto_NA <- leaflet() %>% 
+  addTiles() %>%
+  addCircleMarkers(data = EVS_NA_CLB.shp, radius = 2, label = ~ Id_cart, col = "red")    
+carto_NA
+```
+
+</div>
+
+Bien que ce soit un échantillon particulier il est interressant de regarder les erreurs que nous rencontrons : 
+
+Il y a 9 géolocalistions non trouvées.
+
+* ID 01_0437_6 : la géolocalisation est fausse comme le sugère `result_score` = .26
+
+* ID 01_0598_6 : géoloclisation fausse (de pas bcp mais tout de meme), le chemin se trouve au bout de la route
+ 
+* ID 02_0451_8 / 16_0447_4 : faux c'est une adresse à Lyon que le géocodeur à mis à Paris/Aix, il semble que c'est le cas pour toutes les villes à arrondissement. Le géocodeur d'ESRI cést planté car le nom de la ville est inversé avec celui de le CP
+
+* ID 05_0601_4 : Faux aucune idée de comment il arrive à ce résultat
+
+* ID 13_0441_3 : Faux `result_score` = .3 mauvaise rue et pas de rue principale dans cette commune
+
+* ID 13_0441_4 : faux bon code postal mais mauvaise ville, ville à coté (ou assimilé) 
+
+* ID 20_0755_2 : faux il trouve pas la ville
 
 
 
