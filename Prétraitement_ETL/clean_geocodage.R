@@ -86,6 +86,15 @@ geocodage_evs_NA.shp %>%
     filter(Id_cart %in% NA_Loc_name) %>% 
     View()
 
+# on fait de même pour le geocodage ESRI
+
+NA_result_type <- geocodage_evs_NA.shp$Id_cart[is.na(geocodage_evs_NA.shp$result_type)]
+
+geocodage_clb_NA.shp %>% 
+    st_drop_geometry() %>% 
+    filter(ID_CARTO %in% NA_result_type) %>% 
+    count(Loc_name)
+
 # 2- besoin de modification 
 
 geocodage_evs_NA.shp$source_loc[geocodage_evs_NA.shp$Id_cart == "01_0437_6"] <- "Faux"
@@ -96,3 +105,6 @@ geocodage_evs_NA.shp$source_loc[geocodage_evs_NA.shp$Id_cart == "13_0441_3"] <- 
 geocodage_evs_NA.shp$source_loc[geocodage_evs_NA.shp$Id_cart == "13_0441_4"] <- "Faux"
 geocodage_evs_NA.shp$source_loc[geocodage_evs_NA.shp$Id_cart == "16_0447_4"] <- "Faux"
 geocodage_evs_NA.shp$source_loc[geocodage_evs_NA.shp$Id_cart == "20_0755_2"] <- "Faux"
+
+
+

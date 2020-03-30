@@ -201,6 +201,8 @@ EVS_NA_CLB.shp <- SharedData$new(geocodage_evs_NA.shp %>%
     filter(Id_cart %in% NA_Loc_name))
 
 DT::datatable(EVS_NA_CLB.shp, rownames = FALSE)
+
+rm(NA_Loc_name)
 ```
 
 </div>
@@ -222,7 +224,7 @@ carto_NA
 
 Bien que ce soit un échantillon particulier il est interressant de regarder les erreurs que nous rencontrons : 
 
-Il y a 9 géolocalistions non trouvées.
+Puis voici une liste des adresses (9) trouvés par EVS mais fausses :
 
 * ID 01_0437_6 : la géolocalisation est fausse comme le sugère `result_score` = .26
 
@@ -237,6 +239,41 @@ Il y a 9 géolocalistions non trouvées.
 * ID 13_0441_4 : faux bon code postal mais mauvaise ville, ville à coté (ou assimilé) 
 
 * ID 20_0755_2 : faux il trouve pas la ville
+
+* ID 20-0755-5 : compter comme bon si c'est une fusion de communes à verifier l'adresse colle bien 
+
+
+Il y a donc :
+
+* 30 (sur 48) adresses correctement géolocalisées
+
+* 9 faux (ou 8) faux dans le géocodage EVS
+
+* 9 difficile à localiser (en dehors d'une precision à l'échelle de la commune)
+
+Une piste pour ameliorer verifier les résultats semble être de comparer la commune en entré de géocodage de celle en sortie (cf. ID 02_0451_8 / 16_0447_4 par exemple).
+
+### NA géocodage EVS
+
+
+Il y a 888 valeurs manquantes dans le géocodage (il faut cependant garder ee tête que 197 a été deja fait à la main). De la meme manière que le paragraphe prècedent, on peut regarder comment ces dernierers ont éte codées par le geocodeur ESRI. 
+
+```{r NAgeocodageEVS, fig.align='center'}
+
+NA_result_type <- geocodage_evs_NA.shp$Id_cart[is.na(geocodage_evs_NA.shp$result_type)]
+
+geocodage_clb_NA.shp %>% 
+    st_drop_geometry() %>% 
+    filter(ID_CARTO %in% NA_result_type) %>% 
+    count(Nbr = Loc_name) %>% 
+    DT::datatable(rownames = FALSE,
+                  width = 300
+                  )
+
+```
+
+
+
 
 
 
