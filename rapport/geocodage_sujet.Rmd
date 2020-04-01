@@ -128,7 +128,7 @@ allsujet_clean.dat <- allsujet_clean.dat %>%
 Retirer les valeurs manquantes semble corriger un peu le nombre élevé de sujets avec une adresse (\@ref(fig:histonbadressemaxNA)). Le jeu comprends `r nrow(allsujet_clean.dat)` lignes pour `r length(unique(substr(allsujet_clean.dat$Id_cart, 1,7)))` sujets. Le nombre moyenne d'adresse par sujet passe à 6,78 avec un écart type de 3,37.
 
 
-(ref:histonbadressemax) Distribution du nombre d'adresses par sujet sans les valeurs manquantes
+(ref:histonbadressemaxNA) Distribution du nombre d'adresses par sujet sans les valeurs manquantes
  
 ```{r histonbadressemaxNA, fig.cap="(ref:histonbadressemaxNA)", fig.align = 'center'}
 
