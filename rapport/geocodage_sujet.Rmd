@@ -41,7 +41,7 @@ allsujet_clean.dat <- readRDS("../data/allsujet_clean.rds")
 
 ## Source des données 
 
-Le geocodage c'est fait à partir d'un jeu de données constitué via des enquêtes téléphoniques [si on a une ref.]. La nature même des interrogations comme savoir où habitaient certains sujets lors de leur naissance fait qu'il y a des manques dans le jeu de données (même si dans la mesure du possible un des parents était présent [à confirmer]). 
+Le géocodage c'est fait à partir d'un jeu de données constitué via des enquêtes téléphoniques [si on a une ref.]. La nature même des interrogations comme savoir où habitaient certains sujets lors de leur naissance fait qu'il y a des manques dans le jeu de données (même si dans la mesure du possible un des parents était présent [à confirmer]). 
 
 
 ## Nombre d'adresse par sujet
@@ -78,7 +78,7 @@ Ainsi, on peut constater que les 31 sujets avec leur première adresse de manqua
 
 Dans les cas où l'adresse manquante n'est pas la première on peut observer deux situations. La première semble correspondre à des cas où c'est la dernière (ou les dans un cas) adresse qui n'est pas renseignée (14/17 sujets). Peut-on supposer que cette adresse serait en trop (une erreur dans l'encodage par exemple) ? Si c'est bien ce cas il nous faut supprimer ces adresses. 
 
-La seconde correspond aux trois cas mentionnés plus haut. Ici l'adresse semble difficile: une adresse en allemagne et deux dans camping sans beaucoup d'information.
+La seconde correspond aux trois cas mentionnés plus haut. Ici l'adresse semble difficile: une adresse en Allemagne et deux dans camping sans beaucoup d'information.
 
 (ref:adressemanquantes) Répartition des valeurs manquantes par "Numéro d'adresse"
 
@@ -117,7 +117,7 @@ DT::datatable(allsujet_clean.dat %>%
 
 ```
 
-## Nombre d'adresses par sujet arpès suupression des NA
+## Nombre d'adresses par sujet après suupression des NA
 
 ```{r filtrerNA}
 # filtrer les NA
@@ -125,7 +125,7 @@ allsujet_clean.dat <- allsujet_clean.dat %>%
                             filter(!is.na(Commune))
 ```
 
-Retirer les valeurs manquantes semble corriger un peu le nombre elevé de sujets avec une adresse (\@ref(fig:histonbadressemaxNA)). Le jeu comprends `r nrow(allsujet_clean.dat)` lignes pour `r length(unique(substr(allsujet_clean.dat$Id_cart, 1,7)))` sujets. Le nombre moyenne d'adresse par sujet passe à 6,78 avec un écart type de 3,37.
+Retirer les valeurs manquantes semble corriger un peu le nombre élevé de sujets avec une adresse (\@ref(fig:histonbadressemaxNA)). Le jeu comprends `r nrow(allsujet_clean.dat)` lignes pour `r length(unique(substr(allsujet_clean.dat$Id_cart, 1,7)))` sujets. Le nombre moyenne d'adresse par sujet passe à 6,78 avec un écart type de 3,37.
 
 
 (ref:histonbadressemax) Distribution du nombre d'adresses par sujet sans les valeurs manquantes

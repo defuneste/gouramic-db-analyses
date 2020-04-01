@@ -50,7 +50,7 @@ L'individu statistique ou la ligne correspond au couple sujet et adresse
 
 * **Commune** = Nom de la commune 
 
-* **Info_sup** = concaténation deLieu_dit, Compl_add_p, pt_remarq_p 
+* **Info_sup** = concaténation de Lieu_dit, Compl_add_p, pt_remarq_p 
 
 * **Adresse** = Rue + nom de rue 
 
@@ -71,15 +71,15 @@ L'individu statistique ou la ligne correspond au couple sujet et adresse
 
 * **"Naissance"** : 0/1 Première adresse du sujet (considéré par définition comme naissance, est ce correcte ?)
 
-* **interval_adresse** : Intervalle entre date_start et date_end. utile pour savoir si un stade de vie d'interet est dans tel ou tel interval cf  [lubridate](https://lubridate.tidyverse.org/articles/lubridate.html#time-intervals))
+* **interval_adresse** : Intervalle entre date_start et date_end. utile pour savoir si un stade de vie d’intérêt est dans tel ou tel intervalle cf  [lubridate](https://lubridate.tidyverse.org/articles/lubridate.html#time-intervals))
 
-* **Enfance** = 0/1 l'adresse est elle dans interval_adresse pour 7-10 ans 
+* **Enfance** = 0/1 l'adresse est elle dans intervalle_adresse pour 7-10 ans 
 
 * **Adolescence**  = 0/1l'adresse est elle dans interval_adresse pour 11-15 ans
 
 * **sujet** = l'id du sujet
 
-* **Importance_adresse** = une somme de Naissance, Enfance et Adolesence pour identifier plus vite les adresses importantes nous manquants
+* **Importance_adresse** = une somme de Naissance, Enfance et Adolescence pour identifier plus vite les adresses importantes nous manquants
 
 * **source_loc** = source du geocodage pour le moment ne prend que "geocodage" et "main" pour celles faites à la main
 
@@ -112,7 +112,7 @@ Le code est [ici](https://github.com/defuneste/gouramic-db-analyses/blob/master/
 
 * **ID_CARTO** : ID_SECONDA_ID_CARTO
 
-* **date_start** et **date_end_a** : date de debut et fin de l'adresse
+* **date_start** et **date_end_a** : date de début et fin de l'adresse
 
 * **COMMUNE** : Nom de la commune
 
@@ -164,7 +164,7 @@ knitr::kable(table(geocodage_clb_NA.shp$Loc_name, useNA = "ifany"),
 
 # Geocodage
 
-Le processus va être de verifier les points dans un leaflet et de corriger dans QGIS ? 
+Le processus va être de vérifier les points dans un leaflet et de corriger dans QGIS ? 
 
 Quand une erreur est trouvée : modification de l'info source_loc :
  
@@ -172,7 +172,7 @@ Quand une erreur est trouvée : modification de l'info source_loc :
 
 ## Les valeurs manquantes 
 
-Elles sont encore 888 pour EVS et 48 pour le clb (cet écart s'expliquerait par le cheflieu/ville/code postal trop flou pour être utilisé). 
+Elles sont encore 888 pour EVS et 48 pour le CLB (cet écart s'expliquerait par le cheflieu/ville/code postal trop flou pour être utilisé). 
 
 ### NA géocodage CLB
 
@@ -210,7 +210,7 @@ rm(NA_Loc_name)
 
 
 
-<button class="btn btn-primary" data-toggle="collapse" data-target="#BlockName_cartoNA"> Carto_correpsondance géocodage EVS </button>
+<button class="btn btn-primary" data-toggle="collapse" data-target="#BlockName_cartoNA"> Carto_correspondance géocodage EVS </button>
 <div id="BlockName_cartoNA" class="collapse">
 
 ```{r cartoNA}
@@ -218,19 +218,20 @@ carto_NA <- leaflet() %>%
   addTiles() %>%
   addCircleMarkers(data = EVS_NA_CLB.shp, radius = 2, label = ~ Id_cart, col = "red")    
 carto_NA
+rm(carto_NA, EVS_NA_CLB.shp)
 ```
 
 </div>
 
-Bien que ce soit un échantillon particulier il est interressant de regarder les erreurs que nous rencontrons : 
+Bien que ce soit un échantillon particulier il est intéressante de regarder les erreurs que nous rencontrons : 
 
 Puis voici une liste des adresses (9) trouvés par EVS mais fausses :
 
-* ID 01_0437_6 : la géolocalisation est fausse comme le sugère `result_score` = .26
+* ID 01_0437_6 : la géolocalisation est fausse comme le suggère `result_score` = .26
 
-* ID 01_0598_6 : géoloclisation fausse (de pas bcp mais tout de meme), le chemin se trouve au bout de la route
+* ID 01_0598_6 : géolocalisation fausse (de pas bcp mais tout de même), le chemin se trouve au bout de la route
  
-* ID 02_0451_8 / 16_0447_4 : faux c'est une adresse à Lyon que le géocodeur à mis à Paris/Aix, il semble que c'est le cas pour toutes les villes à arrondissement. Le géocodeur d'ESRI cést planté car le nom de la ville est inversé avec celui de le CP
+* ID 02_0451_8 / 16_0447_4 : faux c'est une adresse à Lyon que le géocodeur à mis à Paris/Aix, il semble que c'est le cas pour toutes les villes à arrondissement. Le géocodeur d'ESRI c'est planté car le nom de la ville est inversé avec celui de le CP
 
 * ID 05_0601_4 : Faux aucune idée de comment il arrive à ce résultat
 
@@ -240,7 +241,7 @@ Puis voici une liste des adresses (9) trouvés par EVS mais fausses :
 
 * ID 20_0755_2 : faux il trouve pas la ville
 
-* ID 20-0755-5 : compter comme bon si c'est une fusion de communes à verifier l'adresse colle bien 
+* ID 20-0755-5 : compter comme bon si c'est une fusion de communes à vérifier l'adresse colle bien 
 
 
 Il y a donc :
@@ -249,32 +250,60 @@ Il y a donc :
 
 * 9 faux (ou 8) faux dans le géocodage EVS
 
-* 9 difficile à localiser (en dehors d'une precision à l'échelle de la commune)
+* 9 difficile à localiser (en dehors d'une précision à l'échelle de la commune)
 
-Une piste pour ameliorer verifier les résultats semble être de comparer la commune en entré de géocodage de celle en sortie (cf. ID 02_0451_8 / 16_0447_4 par exemple).
+Une piste pour améliorer vérifier les résultats semble être de comparer la commune en entré de géocodage de celle en sortie (cf. ID 02_0451_8 / 16_0447_4 par exemple).
 
 ### NA géocodage EVS
 
+Il y a 888 valeurs manquantes dans le géocodage (il faut cependant garder en tête que 197 a été déjà fait à la main). De la même manière que le paragraphe précédent, on peut regarder comment ces dernières ont été codées par le geocodeur ESRI. Leurs répartitions spatiales et par `result_type` est représentée par le tableau \@ref(tab:NAgeocodageEVS) et la carte. 
 
-Il y a 888 valeurs manquantes dans le géocodage (il faut cependant garder ee tête que 197 a été deja fait à la main). De la meme manière que le paragraphe prècedent, on peut regarder comment ces dernierers ont éte codées par le geocodeur ESRI. 
+On est rassuré de retrouver les 9 NA partagés entre les deux géocodages. 
 
-```{r NAgeocodageEVS, fig.align='center'}
+<center>
+
+```{r NAgeocodageEVS, results="asis" }
 
 NA_result_type <- geocodage_evs_NA.shp$Id_cart[is.na(geocodage_evs_NA.shp$result_type)]
+
+cat("<Tableau>",paste0("<caption>", "(#tab:NAgeocodageEVS)", ' Répartition des NA dans EVS / result_type CLB', "</caption>"),"</tableau>", sep ="\n")
 
 geocodage_clb_NA.shp %>% 
     st_drop_geometry() %>% 
     filter(ID_CARTO %in% NA_result_type) %>% 
-    count(Nbr = Loc_name) %>% 
+    count(Loc_name) %>% 
     DT::datatable(rownames = FALSE,
-                  width = 300
-                  )
+                  width = 300)
 
 ```
 
+</center>
 
 
+<button class="btn btn-primary" data-toggle="collapse" data-target="#BlockName_Carto_NA_EVS"> Affichage Carte NA EVS </button>
+<div id="BlockName_Carto_NA_EVS" class="collapse">
 
+
+```{r Carto_NA_EVS}
+
+CLB_NA_EVS.shp <- geocodage_clb_NA.shp %>% 
+                    filter(ID_CARTO %in% NA_result_type) %>% 
+                    st_transform(4326)
+
+pal <- colorFactor(
+  palette = c('red', 'blue', 'green', 'purple', 'orange', "brown", "yellow"),
+  domain = CLB_NA_EVS.shp$Loc_name)
+
+carto_EVSNA <- leaflet(CLB_NA_EVS.shp) %>% 
+                    addProviderTiles(providers$Stamen.TonerLite) %>%
+                    addCircleMarkers(radius = 2,  col = ~pal(Loc_name), label = ~ID_CARTO) %>% 
+                    addLegend(pal = pal, values = ~Loc_name)
+carto_EVSNA
+
+rm(CLB_NA_EVS.shp, pal, carto_EVSNA, NA_result_type)
+```
+
+</div>
 
 
 
