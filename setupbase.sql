@@ -5,35 +5,42 @@
 * cela sera important pour les rasters
 */  
 
-CREATE DATABASE gouramic_EVS;
+-- create database dbgouramic;
 
 -- pour éviter un fourre tout dans public postgis à son propre schema
-CREATE SCHEMA postgis; 
-GRANT USAGE ON schema postgis to public;
-CREATE EXTENSION postgis SCHEMA postgis;
+create schema if not exists postgis; 
+grant usage on schema postgis to public;
+create extension postgis schema postgis;
 -- A partir de la version 3.0 de postgis uniquement
-CREATE EXTENSION postgis_raster SCHEMA postgis;
+create extension postgis_raster schema postgis;
 -- ici pe un pas possible sur ancienne version
-ALTER DATABASE gouramic_EVS SET search_path=public, postgis, contrib;
-CREATE SCHEMA gouramic;
+alter database dbgouramic set search_path=public, postgis, contrib;
+create schema if not exists gouramic;
 
 
 -- creation des roles et users
 
-CREATE ROLE lecteur NOCREATEDB NOCREATEROLE;
-GRANT CONNECT ON DATABASE gouramic_evs TO lecteur;
-GRANT USAGE ON SCHEMA gouramic TO lecteur;
+create role lecteur NOCREATEDB NOCREATEROLE;
+grant CONNECT on database dbgouramic 
+                       to lecteur;
+grant USAGE 
+         on schema gouramic 
+         to lecteur;
 -- ici il y a pas de table pour le moment mais je garde pour memoire
-GRANT SELECT ON ALL TABLES IN SCHEMA gouramic TO lecteur;
+grant select on all TABLES 
+                        in schema gouramic 
+                        to lecteur;
 -- changer les param par defaut 
-ALTER DEFAULT PRIVILEGES IN SCHEMA gouramix GRANT SELECT ON TABLES TO lecteur;
+alter default PRIVILEGES 
+                      in SCHEMA gouramic 
+                      grant select on TABLES 
+                      to lecteur;
 -- les fonctions sont dans public donc normalement accessible à verif
 
-CREATE USER Mathieu WITH PASSWORD 'unpwd'; 
-GRANT lecteur TO Mathieu;
-CREATE USER Remi WITH PASSWORD 'deuxpwd';
-GRANT lecteur TO Remi;
+create user mathieu with PASSWORD 'unpwd'; 
+grant lecteur TO mathieu;
+create user remi with PASSWORD 'deuxpwd';
+grant lecteur to remi;
 
--- une table vide de test 
-
-
+-- penser à relancer le service
+-- sudo service postgresql restart
