@@ -169,11 +169,25 @@ allsujet_clean_NA.dat <- allsujet_num_rue_clean.dat %>%
 
 saveRDS(allsujet_clean_NA.dat, "data/allsujet_cleanNA.rds")
 
+# 3- Export pour db 
+
+dim(allsujet_clean.dat)
+
+sujet.dat <- allsujet_clean.dat %>% 
+    mutate(sujet = substr(allsujet_clean.dat$Id_cart, 1,7)) %>% 
+    select(sujet, Date_birth) %>% 
+    group_by(sujet) %>% 
+    summarize(Date_birth = first(Date_birth))
+
+write.table(sujet.dat, 
+            "data/sujet.csv", 
+            sep = ",",
+            quote = FALSE,
+            row.names = FALSE,
+            col.names=FALSE) 
 
 # il va falloir aller le chercher dans la liste des codes postaux
-# # https://www.data.gouv.fr/fr/datasets/base-officielle-des-codes-postaux/
-# 
-# la_poste.dat <- read.csv("data/laposte_hexasmal.csv", sep = ";")
+# # https://w,t <- read.csv("data/laposte_hexasmal.csv", sep = ";")
 # summary(la_poste.dat)
 #
 # allsujet_num_rue_clean.dat$commune[allsujet_num_rue_clean.dat$code_post == ""][!
