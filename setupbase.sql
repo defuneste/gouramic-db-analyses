@@ -15,8 +15,14 @@ create extension postgis schema postgis;
 create extension postgis_raster schema postgis;
 -- ici pe un pas possible sur ancienne version
 alter database dbgouramic set search_path=public, postgis, contrib;
-create schema if not exists gouramic;
+create schema if not exists gou;
 
+
+-- penser à relancer le service
+-- sudo service postgresql restart
+-- verification de postgis 
+
+SELECT postgis_full_version();
 
 -- creation des roles et users
 
@@ -28,11 +34,11 @@ grant USAGE
          to lecteur;
 -- ici il y a pas de table pour le moment mais je garde pour memoire
 grant select on all TABLES 
-                        in schema gouramic 
+                        in schema gou 
                         to lecteur;
 -- changer les param par defaut 
 alter default PRIVILEGES 
-                      in SCHEMA gouramic 
+                      in SCHEMA gou 
                       grant select on TABLES 
                       to lecteur;
 -- les fonctions sont dans public donc normalement accessible à verif
