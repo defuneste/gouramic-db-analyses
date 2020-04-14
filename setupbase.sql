@@ -16,7 +16,8 @@ create extension postgis_raster schema postgis;
 -- ici pe un pas possible sur ancienne version
 alter database dbgouramic set search_path=public, postgis, contrib;
 create schema if not exists gou;
-
+-- un schema pour les données en transit
+create schema if not exists staging;
 
 -- penser à relancer le service
 -- sudo service postgresql restart

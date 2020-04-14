@@ -10,7 +10,7 @@ create table table_sujet_stagging (
                     );
 
 
-\cd /home/defuneste/Documents/gouramic/gouramic/data
+\cd /home/defuneste/Documents/recherche/gouramic/gouramic-db-analyses/data
 \! pwd
 
 \copy table_sujet_stagging from 'sujet.csv' delimiter ',' ;
