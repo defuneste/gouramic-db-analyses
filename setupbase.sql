@@ -15,6 +15,7 @@ create extension postgis schema postgis;
 create extension postgis_raster schema postgis;
 -- ici pe un pas possible sur ancienne version
 alter database dbgouramic set search_path=public, postgis, contrib;
+alter database dbgouramic set postgis.gdal_enabled_drivers = 'ENABLE_ALL';
 create schema if not exists gou;
 -- un schema pour les données en transit
 create schema if not exists staging;
