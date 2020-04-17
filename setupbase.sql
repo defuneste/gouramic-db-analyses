@@ -32,7 +32,7 @@ create role lecteur NOCREATEDB NOCREATEROLE;
 grant CONNECT on database dbgouramic 
                        to lecteur;
 grant USAGE 
-         on schema gouramic 
+         on schema gou 
          to lecteur;
 -- ici il y a pas de table pour le moment mais je garde pour memoire
 grant select on all TABLES 

@@ -33,12 +33,20 @@ table_adresse_test <- geocodage_evs.shp %>%
                             dplyr::mutate(sujet_id = substr(geocodage_evs.shp$Id_cart, 1,7),
                                     adresse_clb = as.numeric(str_extract(geocodage_evs.shp$Id_cart, pattern = "[0-9]{1,2}?$"))) %>% 
                             dplyr::select(sujet_id, adresse_clb, result_type, source_loc, geometry) %>% 
-                            dplyr::distinct(.keep_all = TRUE)
-
+                            dplyr::distinct(.keep_all = TRUE) %>% 
+                            dplyr::mutate(adresse_id = row_number()) %>% 
+                            # me faut reorder et mettre dans le bon CRS 
+                            dplyr::select(adresse_id, sujet_id, adresse_clb, result_type,source_loc, geometry) %>% 
+                            st_transform(2154)
+    
+# option 1 dans un csv
 write.table(table_adresse_test, 
             "data/adresse.csv", 
-            sep = ",",
+            sep = ";",
             quote = FALSE,
             row.names = FALSE,
             col.names=FALSE) 
-    
+
+# option 2 via un shapefile  
+
+st_write(table_adresse_test, dsn = "data/adresse.shp")
