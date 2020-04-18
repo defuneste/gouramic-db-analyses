@@ -29,16 +29,27 @@ test_compar <- microbenchmark(times = 10,
 # j'ai pris distcint pour piper un peu meme si il est un tout petit plus lents
 # je trouve pas que intersection et difference font sens sur des points
 
+# il faut aussi filtrer les cas où il n'y qu'une adresse et manquante
+sujet.dat <- allsujet_SansNA.dat %>% 
+    mutate(sujet = substr(allsujet_SansNA.dat$Id_cart, 1,7)) %>% 
+    select(sujet, Date_birth) %>% 
+    group_by(sujet) %>% 
+    summarize(Date_birth = first(Date_birth))
+
 table_adresse_test <- geocodage_evs.shp %>% 
-                            dplyr::mutate(sujet_id = substr(geocodage_evs.shp$Id_cart, 1,7),
+                           dplyr::mutate(sujet_id = substr(geocodage_evs.shp$Id_cart, 1,7),
                                     adresse_clb = as.numeric(str_extract(geocodage_evs.shp$Id_cart, pattern = "[0-9]{1,2}?$"))) %>% 
                             dplyr::select(sujet_id, adresse_clb, result_type, source_loc, geometry) %>% 
                             dplyr::distinct(.keep_all = TRUE) %>% 
                             dplyr::mutate(adresse_id = row_number()) %>% 
                             # me faut reorder et mettre dans le bon CRS 
                             dplyr::select(adresse_id, sujet_id, adresse_clb, result_type,source_loc, geometry) %>% 
-                            st_transform(2154)
-    
+                            st_transform(2154) %>% 
+                            # ici on filtre les sujet sans residences
+                            filter(sujet_id %in% sujet.dat$sujet)
+
+length(unique(table_adresse_test$sujet_id))
+
 # option 1 dans un csv
 write.table(table_adresse_test, 
             "data/adresse.csv", 
