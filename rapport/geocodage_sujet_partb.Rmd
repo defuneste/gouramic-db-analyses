@@ -30,6 +30,7 @@ Il y a eu deux traitements un effectué par le CLB via ESRI [ref] et un effectu�
 allsujet_SansNA.dat <- readRDS("../data/allsujet_cleanNA.rds")
 geocodage_evs.shp <- sf::st_read("../data/geocodev2.geojson", stringsAsFactors = FALSE)
 geocodage_clb.shp <- sf::st_read("../data/Geocoding_Result.shp", stringsAsFactors = FALSE)
+geocodage_clbv2.shp <- sf::st_read("../data/sortie_15_04.shp")
 ```
 
 
@@ -134,7 +135,7 @@ Le code est [ici](https://github.com/defuneste/gouramic-db-analyses/blob/master/
 geocodage_evs_NA.shp <-  geocodage_evs.shp %>% 
     filter(Id_cart  %in% allsujet_SansNA.dat$Id_cart)
 
-geocodage_clb_NA.shp <-  geocodage_clb.shp %>% 
+geocodage_clb_NA.shp <-  geocodage_clbv2.shp %>% 
     filter(ID_CARTO  %in% allsujet_SansNA.dat$Id_cart)
 
 rm(geocodage_evs.shp, geocodage_clb.shp)
@@ -185,7 +186,7 @@ cat("<Tableau>",paste0("<caption>", "(#tab:NAgeocodageCLB)", ' NA dans le géoco
 DT::datatable(geocodage_clb_NA.shp %>% 
     st_drop_geometry() %>% 
     filter(is.na(Loc_name)) %>% 
-    select(Loc_name, ID_CARTO, COMMUNE, CP))
+    select(Loc_name, ID_CARTO, Commune, CP))
 ```
 
 

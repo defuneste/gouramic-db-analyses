@@ -117,7 +117,7 @@ DT::datatable(allsujet_clean.dat %>%
 
 ```
 
-## Nombre d'adresses par sujet après suupression des NA
+## Nombre d'adresses par sujet après supression des NA
 
 ```{r filtrerNA}
 # filtrer les NA
