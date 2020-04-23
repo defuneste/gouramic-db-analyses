@@ -52,6 +52,7 @@ sfc_as_cols <- function(x, names = c("x","y")) {
     dplyr::bind_cols(x,ret) # on bind sur les cols
 }
 
+
 geocodage_clbv2_clean.shp  <- geocodage_clbv2.shp   %>% 
     select(ID_CARTO,
            date_debut = date_start,
@@ -65,6 +66,14 @@ geocodage_clbv2_clean.shp  <- geocodage_clbv2.shp   %>%
     st_transform(4326) %>% 
     select(ID_CARTO, date_debut, date_fin, interval,  x , y, geometry) %>% 
     arrange(ID_CARTO, date_debut)
+
+
+write.table(geocodage_clbv2_clean.shp , 
+            "data/clean_adresse.csv", 
+            sep = ";",
+            quote = FALSE,
+            row.names = FALSE,
+            col.names=TRUE) 
 
 
 write.table(geocodage_clbv2_clean.shp , 
