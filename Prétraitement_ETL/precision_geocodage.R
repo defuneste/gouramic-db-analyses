@@ -12,6 +12,7 @@ geocodage_clbv2.shp <- sf::st_read("data/sortie_15_04.shp")
 geocodage_clbv2.shp$date_start <- parse_date_time(geocodage_clbv2.shp$date_start, orders = c("my", "dmy"))
 geocodage_clbv2.shp$date_end_a <- parse_date_time(geocodage_clbv2.shp$date_end_a, orders = c("my", "dmy"))
 
+
 geocodage_evs.shp <- sf::st_read("data/geocodev2.geojson", stringsAsFactors = FALSE)
 
 ## 1- Stats descriptives rapides =========================
@@ -42,13 +43,13 @@ filtre_geocode_proche <- filtre_geocode[filtre_geocode$Dist_m <= 5,]
 # pris ici : https://github.com/r-spatial/sf/issues/231
 
 sfc_as_cols <- function(x, names = c("x","y")) {
-    stopifnot(inherits(x,"sf") && inherits(sf::st_geometry(x),"sfc_POINT"))
-    ret <- sf::st_coordinates(x)
-    ret <- tibble::as_tibble(ret)
-    stopifnot(length(names) == ncol(ret))
-    x <- x[ , !names(x) %in% names]
-    ret <- setNames(ret,names)
-    dplyr::bind_cols(x,ret)
+    stopifnot(inherits(x,"sf") && inherits(sf::st_geometry(x),"sfc_POINT")) ## un stop si ps un objet sf avec des points
+    ret <- sf::st_coordinates(x)  # coordinates retourne une marice X / Y
+    ret <- tibble::as_tibble(ret) # passage en tibble
+    stopifnot(length(names) == ncol(ret)) # stop si on essaie de mettre autre chose que deux noms
+    x <- x[ , !names(x) %in% names]  # ici c'est un peu brute car on va supprimer des colonnes qui aurait les noms donnés
+    ret <- setNames(ret,names) # on renome
+    dplyr::bind_cols(x,ret) # on bind sur les cols
 }
 
 geocodage_clbv2_clean.shp  <- geocodage_clbv2.shp   %>% 
@@ -58,13 +59,19 @@ geocodage_clbv2_clean.shp  <- geocodage_clbv2.shp   %>%
     filter(ID_CARTO %in% filtre_geocode_proche$ID_CARTO) %>% 
     mutate(interval = interval(date_debut,date_fin)) %>% 
     sfc_as_cols() %>% 
-    select(ID_CARTO, date_debut, date_fin, interval,  x , y, geometry)
+    st_buffer(2000) %>% 
+    st_transform(4326) %>% 
+        select(ID_CARTO, date_debut, date_fin, interval,  x , y, geometry)
 
 
 write.table(geocodage_clbv2_clean.shp , 
             "data/clean_adresse.csv", 
-            sep = ",",
+            sep = ";",
             quote = FALSE,
             row.names = FALSE,
             col.names=TRUE) 
+
+## export pour Matthieu et Olivier avec les adresses à identifier 
+# objectif ici est d'avoir les adresses à verifier 
+
 
