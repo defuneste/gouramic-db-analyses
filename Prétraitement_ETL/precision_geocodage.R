@@ -1,7 +1,7 @@
 ### geocodage precision
 # 20/04 
 
-pkgs <-  c("dplyr", "tidyr", "ggplot2", "sf", "lubridate")
+pkgs <-  c("dplyr", "tidyr", "ggplot2", "sf", "lubridate", "purrr")
 inst <- lapply(pkgs, library, character.only = TRUE)
 
 ## lecture des fichiers
@@ -52,6 +52,10 @@ sfc_as_cols <- function(x, names = c("x","y")) {
     dplyr::bind_cols(x,ret) # on bind sur les cols
 }
 
+## on vire les NA temporaire !!!!
+
+geocodage_clbv2.shp <- geocodage_clbv2.shp[!is.na(geocodage_clbv2.shp$date_start),]
+geocodage_clbv2.shp <- geocodage_clbv2.shp[!is.na(geocodage_clbv2.shp$date_end_a),]
 
 geocodage_clbv2_clean.shp  <- geocodage_clbv2.shp   %>% 
     select(ID_CARTO,
@@ -76,12 +80,33 @@ write.table(geocodage_clbv2_clean.shp ,
             col.names=TRUE) 
 
 
-write.table(geocodage_clbv2_clean.shp , 
-            "data/clean_adresse.csv", 
-            sep = ";",
-            quote = FALSE,
-            row.names = FALSE,
-            col.names=TRUE) 
+## Cela semble plus simple d'avoir une ligne pour chaque année
+
+geocodage_clbv2_clean.shp$date_debut <- year(geocodage_clbv2_clean.shp$date_debut)
+geocodage_clbv2_clean.shp$date_fin <- year(geocodage_clbv2_clean.shp$date_fin)
+
+# ## un test léger sans la geometrie
+# dat <- geocodage_clbv2_clean.shp %>% 
+#             st_drop_geometry()
+# 
+# dat %>%
+#     nest(date_debut, date_fin) %>%
+#     mutate(data = map(data, ~seq(unique(.x$date_debut), unique(.x$date_fin), 1))) %>%
+#     unnest(data)
+
+geocodage_clbv2_clean_dupli.shp <-  geocodage_clbv2_clean.shp %>% 
+                                        st_drop_geometry() %>% 
+                                        nest(date_debut, date_fin) %>% 
+                                        mutate(data = map(data, ~seq(unique(.x$date_debut), unique(.x$date_fin), 1))) %>% 
+                                        unnest(data) %>% 
+                                        st_as_sf(coords = c("x", "y")) %>% 
+                                        select(-interval) %>%  
+                                        st_set_crs(st_crs("EPSG:4326")) %>% 
+                                        sfc_as_cols() %>% 
+                                        st_transform(2154) %>% 
+                                        st_buffer(2000) %>% 
+                                        st_transform(4326) 
+    
 
 ## export pour Matthieu et Olivier avec les adresses à identifier 
 # objectif ici est d'avoir les adresses à verifier 
