@@ -105,8 +105,17 @@ geocodage_clbv2_clean_dupli.shp <-  geocodage_clbv2_clean.shp %>%
                                         sfc_as_cols() %>% 
                                         st_transform(2154) %>% 
                                         st_buffer(2000) %>% 
-                                        st_transform(4326) 
-    
+                                        st_transform(4326) %>% 
+                                        select(ID_CARTO, date_y = data, x, y, geometry)
+
+write.table(geocodage_clbv2_clean_dupli.shp, 
+            "data/clean_adresse_dupli.csv", 
+            sep = ";",
+            quote = FALSE,
+            row.names = FALSE,
+            col.names=TRUE) 
+   
+# zip -e clean_adresse_dupli.zip clean_adresse_dupli.csv
 
 ## export pour Matthieu et Olivier avec les adresses à identifier 
 # objectif ici est d'avoir les adresses à verifier 
