@@ -108,16 +108,25 @@ geocodage_clbv2_clean_dupli.shp <-  geocodage_clbv2_clean.shp %>%
                                         st_transform(4326) %>% 
                                         select(ID_CARTO, date_y = data, x, y, geometry)
 
+
+# export en differents formats
 write.table(geocodage_clbv2_clean_dupli.shp, 
             "data/clean_adresse_dupli.csv", 
             sep = ";",
             quote = FALSE,
             row.names = FALSE,
             col.names=TRUE) 
-   
+
+st_write(geocodage_clbv2_clean_dupli.shp, dsn = "clean_adresse_dupli.geojson")
+
+st_write(geocodage_clbv2_clean_dupli.shp, dsn = "data/clean_adresse_dupli.shp")
+
+
 # zip -e clean_adresse_dupli.zip clean_adresse_dupli.csv
 
-## export pour Matthieu et Olivier avec les adresses à identifier 
+## 3 export pour Matthieu et Olivier avec les adresses à identifier ================
 # objectif ici est d'avoir les adresses à verifier 
 
+# on va commencer par les NA 
 
+filtre_geocode <- dist.dat[dist.dat$PreciBan != dist.dat$Preci_CLB,]
