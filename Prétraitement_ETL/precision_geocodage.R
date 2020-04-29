@@ -127,7 +127,7 @@ st_write(geocodage_clbv2_clean_dupli.shp, dsn = "data/clean_adresse_dupli.shp")
 
 # zip -e clean_adresse_dupli.zip clean_adresse_dupli.csv
 
-## 3 export pour Matthieu et Olivier avec les adresses à identifier ================
+## 3- Exports pour Matthieu et Olivier avec les adresses à identifier ================
 # objectif ici est d'avoir les adresses à verifier 
 
 # on va commencer par les NA 
@@ -147,6 +147,58 @@ geocodage_clb_mains <- geocodage_clbv2.shp[geocodage_clbv2.shp$ID_CARTO %in% geo
 
 st_write(geocode_mains_Na, dsn = "data/geocode_mains_Na.geojson")
 st_write(geocodage_clb_mains , dsn = "data/geocodage_clb_mains.geojson")
+
+# on exclue ce qui a été codé à la main 
+
+NA_ageocoder.shp <- geocodage_evs.shp[!geocodage_evs.shp$Id_cart %in%  dist.dat$ID_CARTO ,] %>% 
+                        filter(source_loc != "main") %>% 
+                        select(Id_cart, Date_start, Date_end, Commune, Adresse, Code_postal, Info_sup, result_type) %>% 
+                        st_transform(2154)
+
+# on sort ce qui n'a que la commune/code postal comme info
+
+on_fera_pas_mieux <- NA_ageocoder.dat %>% 
+                        filter(is.na(Adresse)) %>% 
+                        filter(is.na(Info_sup)) %>% 
+                        filter(!is.na(Commune)) %>% 
+                        st_drop_geometry()
+
+# comment sont-il codé par le geocodage ESRI
+table(geocodage_clbv2.shp$Loc_name[geocodage_clbv2.shp$ID_CARTO %in% on_fera_pas_mieux$Id_cart])
+
+
+write.table(on_fera_pas_mieux, 
+            "data/on_fera_pas_mieux.csv", 
+            sep = ";",
+            quote = FALSE,
+            row.names = FALSE,
+            col.names=TRUE) 
+
+ageocoder.shp <- NA_ageocoder.shp[!NA_ageocoder.shp$Id_cart %in% on_fera_pas_mieux$Id_cart,] %>% 
+                    filter(!is.na(Commune)) %>% 
+                    arrange(Id_cart)
+
+write.table(ageocoder.shp[385:769,], 
+            "data/ageocoder_oli.csv", 
+            sep = ";",
+            quote = FALSE,
+            row.names = FALSE,
+            col.names=TRUE) 
+
+ageocoder.shp[385:769,]
+
+# on peut regarder à quoi cela correspond sur le géocodage ESRI 
+
+table(geocodage_clbv2.shp$Loc_name[geocodage_clbv2.shp$ID_CARTO %in% ageocoder.shp$Id_cart])
+
+nrow(ageocoder.shp)/2
+
+write.table(on_fera_pas_mieux, 
+            "data/on_fera_pas_mieux.csv", 
+            sep = ";",
+            quote = FALSE,
+            row.names = FALSE,
+            col.names=TRUE) 
 
 # ici c'est les differences dans les precisions
 
