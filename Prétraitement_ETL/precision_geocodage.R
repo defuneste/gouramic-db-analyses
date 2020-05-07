@@ -157,7 +157,7 @@ NA_ageocoder.shp <- geocodage_evs.shp[!geocodage_evs.shp$Id_cart %in%  dist.dat$
 
 # on sort ce qui n'a que la commune/code postal comme info
 
-on_fera_pas_mieux <- NA_ageocoder.dat %>% 
+on_fera_pas_mieux <- NA_ageocoder.shp %>% 
                         filter(is.na(Adresse)) %>% 
                         filter(is.na(Info_sup)) %>% 
                         filter(!is.na(Commune)) %>% 
@@ -185,6 +185,12 @@ write.table(ageocoder.shp[385:769,],
             row.names = FALSE,
             col.names=TRUE) 
 
+geocodage_clb_oli <- geocodage_clbv2.shp[geocodage_clbv2.shp$ID_CARTO %in% ageocoder.shp$Id_cart[385:769], ] %>% 
+    tidyr::unite("Info_sup", lieudit_p, compl_add_, pt_remarq_, sep = " ", na.rm = TRUE) %>% 
+    select(ID_CARTO, date_start, date_end_a, Commune, Adresse, CP, Info_sup, Match_addr, Loc_name)
+
+st_write(geocodage_clbv2_clean_dupli.shp, dsn = "data/clean_adresse_dupli.shp")
+
 ageocoder.shp[385:769,]
 
 # on peut regarder à quoi cela correspond sur le géocodage ESRI 
@@ -193,13 +199,6 @@ table(geocodage_clbv2.shp$Loc_name[geocodage_clbv2.shp$ID_CARTO %in% ageocoder.s
 
 nrow(ageocoder.shp)/2
 
-write.table(on_fera_pas_mieux, 
-            "data/on_fera_pas_mieux.csv", 
-            sep = ";",
-            quote = FALSE,
-            row.names = FALSE,
-            col.names=TRUE) 
-
-# ici c'est les differences dans les precisions
+    # ici c'est les differences dans les precisions
 
 filtre_geocode <- dist.dat[dist.dat$PreciBan != dist.dat$Preci_CLB,]
