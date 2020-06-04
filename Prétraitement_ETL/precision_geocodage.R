@@ -189,7 +189,7 @@ geocodage_clb_oli <- geocodage_clbv2.shp[geocodage_clbv2.shp$ID_CARTO %in% ageoc
     tidyr::unite("Info_sup", lieudit_p, compl_add_, pt_remarq_, sep = " ", na.rm = TRUE) %>% 
     select(ID_CARTO, date_start, date_end_a, Commune, Adresse, CP, Info_sup, Match_addr, Loc_name)
 
-st_write(geocodage_clbv2_clean_dupli.shp, dsn = "data/clean_adresse_dupli.shp")
+st_write(geocodage_clb_oli, dsn = "data/geocodage_clb_oli.shp")
 
 ageocoder.shp[385:769,]
 
