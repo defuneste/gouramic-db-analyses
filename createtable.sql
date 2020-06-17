@@ -30,6 +30,7 @@ create table gou.table_adresse (
 -- une version avec un shpe pe plus simple -I mets en place un gist sur geometry
 -- vu que je vais faire un import derrière je sais pas si c'est le plus pertinent
 
+-- je suis passer par une version "non localhost"" de cette commande
 shp2pgsql -s 2154 -g geometry -I data/adresse.shp staging.adresse_staging | psql -h localhost -U postgres -p 5432 -d dbgouramic
 
 insert into gou.table_adresse (adresse_id, sujet_id, adresse_clb, precision, source_codage, geometry)
