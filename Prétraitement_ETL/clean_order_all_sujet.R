@@ -171,10 +171,10 @@ saveRDS(allsujet_clean_NA.dat, "data/allsujet_cleanNA.rds")
 
 # 3- Export pour db 
 
-dim(allsujet_clean.dat)
+dim(allsujet_clean_NA.dat)
 
-sujet.dat <- allsujet_clean.dat %>% 
-    mutate(sujet = substr(allsujet_clean.dat$Id_cart, 1,7)) %>% 
+sujet.dat <- allsujet_clean_NA.dat %>% 
+    mutate(sujet = substr(allsujet_clean_NA.dat$Id_cart, 1,7)) %>% 
     select(sujet, Date_birth) %>% 
     group_by(sujet) %>% 
     summarize(Date_birth = first(Date_birth))

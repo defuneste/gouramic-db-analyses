@@ -37,13 +37,26 @@ grant CONNECT on database dbgouramic
 grant USAGE 
          on schema gou 
          to lecteur;
+grant USAGE 
+         on schema staging 
+         to lecteur;
 -- ici il y a pas de table pour le moment mais je garde pour memoire
 grant select on all TABLES 
                         in schema gou 
                         to lecteur;
+                        
+ grant select on all TABLES 
+                        in schema staging 
+                        to lecteur;
+                        
 -- changer les param par defaut 
 alter default PRIVILEGES 
                       in SCHEMA gou 
+                      grant select on TABLES 
+                      to lecteur;
+                      
+alter default PRIVILEGES 
+                      in SCHEMA staging
                       grant select on TABLES 
                       to lecteur;
 -- les fonctions sont dans public donc normalement accessible à verif
@@ -53,5 +66,6 @@ grant lecteur TO matthieu;
 create user remi with PASSWORD 'deuxpwd';
 grant lecteur to remi;
 
+    
 -- penser à relancer le service
 -- sudo service postgresql restart

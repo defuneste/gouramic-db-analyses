@@ -6,33 +6,36 @@ inst <- lapply(pkgs, library, character.only = TRUE)
 
 ## lecture des fichiers
 
+# fichier de distance de Matthieu
 dist.dat <- read.csv("data/DistClean.csv", stringsAsFactors = FALSE) 
 geocodage_clbv2.shp <- sf::st_read("data/sortie_15_04.shp" , stringsAsFactors = FALSE)
 
+#correction formatage
 geocodage_clbv2.shp$date_start <- parse_date_time(geocodage_clbv2.shp$date_start, orders = c("my", "dmy"))
 geocodage_clbv2.shp$date_end_a <- parse_date_time(geocodage_clbv2.shp$date_end_a, orders = c("my", "dmy"))
 
 geocodage_evs.shp <- sf::st_read("data/geocodev2.geojson", stringsAsFactors = FALSE)
 
+#correction formatage
 geocodage_evs.shp$Date_birth <- as.Date(geocodage_evs.shp$Date_birth, origin = "1899-12-30")
 geocodage_evs.shp$Date_start <- as.Date(geocodage_evs.shp$Date_start, origin = "1899-12-30")
 geocodage_evs.shp$Date_end <- as.Date(geocodage_evs.shp$Date_start, origin = "1899-12-30")
 
-## 1- Stats descriptives rapides =========================
-# un rapide boxplot
-# completement écraser par 4 valeurs 
-boxplot(dist.dat$Dist_m)
+    ## 1- Stats descriptives rapides =========================
+    # un rapide boxplot
+    # completement écraser par 4 valeurs 
+    boxplot(dist.dat$Dist_m)
+        
+    names(dist.dat)
     
-names(dist.dat)
-
-sum(table(dist.dat$Preci_CLB[dist.dat$Dist_m <= 5], dist.dat$PreciBan[dist.dat$Dist_m <= 5]))
-
-table(dist.dat$Preci_CLB[dist.dat$Dist_m > 5], dist.dat$PreciBan[dist.dat$Dist_m > 5])
-
-sum(table(dist.dat$Preci_CLB[dist.dat$Dist_m > 5], dist.dat$PreciBan[dist.dat$Dist_m > 5]))
+    sum(table(dist.dat$Preci_CLB[dist.dat$Dist_m <= 5], dist.dat$PreciBan[dist.dat$Dist_m <= 5]))
+    
+    table(dist.dat$Preci_CLB[dist.dat$Dist_m > 5], dist.dat$PreciBan[dist.dat$Dist_m > 5])
+    
+    sum(table(dist.dat$Preci_CLB[dist.dat$Dist_m > 5], dist.dat$PreciBan[dist.dat$Dist_m > 5]))
 
 ## 2 Export pour Remi ================================
-# l'idée est de prendre ceux dont la precision entre les deux geocoder est proche 
+# l'idée est de prendre ceux dont la precision entre les deux geocodage est proche 
 # avec une precision de localisation et d'en garder l'identifiant
 # on utilisera cette identifiant filtrer un tableau contenant lat/long en wgs84 + date en année
 
@@ -130,7 +133,7 @@ st_write(geocodage_clbv2_clean_dupli.shp, dsn = "data/clean_adresse_dupli.shp")
 ## 3- Exports pour Matthieu et Olivier avec les adresses à identifier ================
 # objectif ici est d'avoir les adresses à verifier 
 
-# on va commencer par les NA 
+# 3.1 on va commencer par les NA ==========
 
 # tout ce qui est dans geocodage EVS mais n'a pas de distance.
 NA_dist.dat <- geocodage_evs.shp[!geocodage_evs.shp$Id_cart %in%  dist.dat$ID_CARTO ,]

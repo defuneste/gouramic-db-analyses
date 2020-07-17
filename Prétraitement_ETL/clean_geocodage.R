@@ -1,6 +1,7 @@
 ## script du 24/03/2020
 # mise en forme nettoyage du jeux de données des sujets
 # et geocodage
+# ce script part des deux geocodage ESRI et BAN
 # convention de code :
 # .dat <- tableau
 # .shp <- sf 
