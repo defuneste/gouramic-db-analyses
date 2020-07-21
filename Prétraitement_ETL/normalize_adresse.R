@@ -27,16 +27,17 @@ geocodage_clb.shp <- sf::st_read("data/Geocoding_Result.shp", stringsAsFactors =
 #                         r4 <- geocodage_evs.shp[!duplicated(geocodage_evs.shp[,"geometry"]),]
 #                             )   
 
-# j'ai pris distcint pour piper un peu meme si il est un tout petit plus lents
+# j'ai pris distinct pour piper un peu meme si il est un tout petit plus lents
 # je trouve pas que intersection et difference font sens sur des points
 
 # il faut aussi filtrer les cas où il n'y qu'une adresse et manquante
 sujet.dat <- allsujet_SansNA.dat %>% 
-    mutate(sujet = substr(allsujet_SansNA.dat$Id_cart, 1,7)) %>% 
-    select(sujet, Date_birth) %>% 
-    group_by(sujet) %>% 
-    summarize(Date_birth = first(Date_birth))
+    dplyr::mutate(sujet = substr(allsujet_SansNA.dat$Id_cart, 1,7)) %>% 
+    dplyr::select(sujet, Date_birth) %>% 
+    dplyr::group_by(sujet) %>% 
+    dplyr::summarize(Date_birth = first(Date_birth))
 
+# un cas de preparation de données à partir du geocoadage EVS
 table_adresse_test <- geocodage_evs.shp %>% 
                            dplyr::mutate(sujet_id = substr(geocodage_evs.shp$Id_cart, 1,7),
                                     adresse_clb = as.numeric(str_extract(geocodage_evs.shp$Id_cart, pattern = "[0-9]{1,2}?$"))) %>% 
@@ -45,9 +46,9 @@ table_adresse_test <- geocodage_evs.shp %>%
                             dplyr::mutate(adresse_id = row_number()) %>% 
                             # me faut reorder et mettre dans le bon CRS 
                             dplyr::select(adresse_id, sujet_id, adresse_clb, result_type,source_loc, geometry) %>% 
-                            st_transform(2154) %>% 
+                            sf::st_transform(2154) %>% 
                             # ici on filtre les sujet sans residences
-                            filter(sujet_id %in% sujet.dat$sujet)
+                            dplyr::filter(sujet_id %in% sujet.dat$sujet)
 
 length(unique(table_adresse_test$sujet_id))
 
@@ -68,11 +69,40 @@ st_write(table_adresse_test, dsn = "data/adresse.shp")
 ## I. Chargement des données corrigées ====
 ##.#################################################################################33
 
+## une partie de données a été corrigées à la main et une autre est issue du géocodage
+# nous avons decidé de prendre celui d'ESRI comme base
+# il faut regrouper les données et normaliser les adresses
+# via leur localisation ex :
+# On peut avoir une localisation sur un lieu dit imprecis mais il nous faut cependant la 
+# meme adresse
+
 ## 1. hors du geocodage main
 
+## 2. lecture des deux fichiers geocoder à la main + celui que j'avais fait avant ===============
 
+### 2.1 lecture geocodage mains fait en premier cf. precision_geocodage.R
 
-## 2. lecture des deux fichiers geocoder à la main ===============
+oli_geocode.shp <- sf::st_read("data/geocode_mains_Na.geojson") %>% 
+                        dplyr::arrange(Id_cart)
+
+clb_mains_oli.shp <- sf::st_read("data/geocodage_clb_mains.geojson") %>% 
+                        dplyr::arrange(ID_CARTO)
+
+# il y a une diff de 1 entre ces deux là
+
+oli_geocode.shp <- oli_geocode.shp[oli_geocode.shp$Id_cart %in% clb_mains_oli.shp$ID_CARTO,]
+
+# la distance entre ce que j'ai codé à la main et ce qu'ESRI produit 
+# je fais une affectation par ordre verifier si pb et si oui passer par un join 
+
+clb_mains_oli.shp$dist <- st_distance(oli_geocode.shp, clb_mains_oli.shp, by_element = T)
+clb_mains_oli.shp$result_oli <- oli_geocode.shp$result_type
+
+st_write(clb_mains_oli.shp, dsn = "data/geocode_mains_olijully.geojson")
+
+# on exporte et on va verifier à la main
+
+### 2.2 lecture geocodge olivier + matthieu 
 
 RM2.shp <- sf::st_read("data/REgeocodage/RM2_OL.shp") %>% 
                 dplyr::select(adresse_id = Id_cart,
@@ -99,4 +129,19 @@ geocodage_clb_oli.shp <- sf::st_read("data/REgeocodage//geocodage_clb_oli.shp" )
 
 summary(geocodage_clb_oli.shp ) 
 
+### 2.3 on rajoute on_ne_fera_pas mieux.
 
+on_ne_fera_pas_mieux.shp <- sf::st_read("data/on_fera_pas_mieux.csv")
+
+on_ne_fera_pas_mieux_add.shp <- geocodage_clbv2.shp[geocodage_clbv2.shp$ID_CARTO %in% on_ne_fera_pas_mieux.shp$Id_cart,] %>% 
+                        dplyr::select(adresse_id = ID_CARTO,
+                                      Date_start = date_start,
+                                      Date_end = date_end_a,Commune,
+                                      Adresse,
+                                      CP,
+                                      Loc_name) %>% 
+                        dplyr::mutate(sujet_id = substr(adresse_id, 1,7),
+                                      precision = substr(Loc_name, 1, 1))
+                        
+
+rm(on_ne_fera_pas_mieux.shp)

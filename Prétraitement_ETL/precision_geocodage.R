@@ -14,6 +14,7 @@ geocodage_clbv2.shp <- sf::st_read("data/sortie_15_04.shp" , stringsAsFactors = 
 geocodage_clbv2.shp$date_start <- parse_date_time(geocodage_clbv2.shp$date_start, orders = c("my", "dmy"))
 geocodage_clbv2.shp$date_end_a <- parse_date_time(geocodage_clbv2.shp$date_end_a, orders = c("my", "dmy"))
 
+# fichier de geocodage EVS
 geocodage_evs.shp <- sf::st_read("data/geocodev2.geojson", stringsAsFactors = FALSE)
 
 #correction formatage
@@ -21,18 +22,18 @@ geocodage_evs.shp$Date_birth <- as.Date(geocodage_evs.shp$Date_birth, origin = "
 geocodage_evs.shp$Date_start <- as.Date(geocodage_evs.shp$Date_start, origin = "1899-12-30")
 geocodage_evs.shp$Date_end <- as.Date(geocodage_evs.shp$Date_start, origin = "1899-12-30")
 
-    ## 1- Stats descriptives rapides =========================
-    # un rapide boxplot
-    # completement écraser par 4 valeurs 
-    boxplot(dist.dat$Dist_m)
+## 1- Stats descriptives rapides =========================
+# un rapide boxplot
+# completement écraser par 4 valeurs 
+boxplot(dist.dat$Dist_m)
         
-    names(dist.dat)
+names(dist.dat)
     
-    sum(table(dist.dat$Preci_CLB[dist.dat$Dist_m <= 5], dist.dat$PreciBan[dist.dat$Dist_m <= 5]))
+sum(table(dist.dat$Preci_CLB[dist.dat$Dist_m <= 5], dist.dat$PreciBan[dist.dat$Dist_m <= 5]))
     
-    table(dist.dat$Preci_CLB[dist.dat$Dist_m > 5], dist.dat$PreciBan[dist.dat$Dist_m > 5])
+table(dist.dat$Preci_CLB[dist.dat$Dist_m > 5], dist.dat$PreciBan[dist.dat$Dist_m > 5])
     
-    sum(table(dist.dat$Preci_CLB[dist.dat$Dist_m > 5], dist.dat$PreciBan[dist.dat$Dist_m > 5]))
+sum(table(dist.dat$Preci_CLB[dist.dat$Dist_m > 5], dist.dat$PreciBan[dist.dat$Dist_m > 5]))
 
 ## 2 Export pour Remi ================================
 # l'idée est de prendre ceux dont la precision entre les deux geocodage est proche 
@@ -138,7 +139,7 @@ st_write(geocodage_clbv2_clean_dupli.shp, dsn = "data/clean_adresse_dupli.shp")
 # tout ce qui est dans geocodage EVS mais n'a pas de distance.
 NA_dist.dat <- geocodage_evs.shp[!geocodage_evs.shp$Id_cart %in%  dist.dat$ID_CARTO ,]
 
-# So on mets de coté ceux remplie à la mains 
+# On mets de coté ceux remplie à la mains 
 
 geocode_mains_Na <- NA_dist.dat[NA_dist.dat$source_loc == "main",] %>% 
     select(Id_cart, Date_start, Date_end, Commune, Adresse, Code_postal, Info_sup, result_type) %>% 
@@ -148,12 +149,19 @@ geocodage_clb_mains <- geocodage_clbv2.shp[geocodage_clbv2.shp$ID_CARTO %in% geo
     tidyr::unite("Info_sup", lieudit_p, compl_add_, pt_remarq_, sep = " ", na.rm = TRUE) %>% 
     select(ID_CARTO, date_start, date_end_a, Commune, Adresse, CP, Info_sup, Match_addr, Loc_name)
 
+# attention il y une adresse non présente dans geocodage_clbv2.shp 
+geocode_mains_Na[!geocode_mains_Na$Id_cart %in% geocodage_clbv2.shp$ID_CARTO, ]
+
 st_write(geocode_mains_Na, dsn = "data/geocode_mains_Na.geojson")
 st_write(geocodage_clb_mains , dsn = "data/geocodage_clb_mains.geojson")
 
-# on exclue ce qui a été codé à la main 
+# on exclue ce qui a été codé à la main
+# il faut verifier si cela correspond à quelque chose dans le geocodage ESRI
 
-NA_ageocoder.shp <- geocodage_evs.shp[!geocodage_evs.shp$Id_cart %in%  dist.dat$ID_CARTO ,] %>% 
+# dim(geocodage_evs.shp[geocodage_evs.shp$source_loc == "main",])
+
+NA_ageocoder.shp <- geocodage_evs.shp[!geocodage_evs.shp$Id_cart %in%  dist.dat$ID_CARTO, ] %>% 
+                        # c'est ce que j'ai codé à la main au tout début
                         filter(source_loc != "main") %>% 
                         select(Id_cart, Date_start, Date_end, Commune, Adresse, Code_postal, Info_sup, result_type) %>% 
                         st_transform(2154)
@@ -177,7 +185,9 @@ write.table(on_fera_pas_mieux,
             row.names = FALSE,
             col.names=TRUE) 
 
+# on retire ceux dont on ne fera pas mieux
 ageocoder.shp <- NA_ageocoder.shp[!NA_ageocoder.shp$Id_cart %in% on_fera_pas_mieux$Id_cart,] %>% 
+                    # ce filtre retire les cas (47) ou a très très peu d'info
                     filter(!is.na(Commune)) %>% 
                     arrange(Id_cart)
 
