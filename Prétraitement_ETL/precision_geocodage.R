@@ -142,18 +142,19 @@ NA_dist.dat <- geocodage_evs.shp[!geocodage_evs.shp$Id_cart %in%  dist.dat$ID_CA
 # On mets de coté ceux remplie à la mains 
 
 geocode_mains_Na <- NA_dist.dat[NA_dist.dat$source_loc == "main",] %>% 
-    select(Id_cart, Date_start, Date_end, Commune, Adresse, Code_postal, Info_sup, result_type) %>% 
-    st_transform(2154)
+        select(Id_cart, Date_start, Date_end, Commune, Adresse, Code_postal, Info_sup, result_type) #%>% 
+        # st_transform(2154) # à changer si on veut passer en lambert 93
 
 geocodage_clb_mains <- geocodage_clbv2.shp[geocodage_clbv2.shp$ID_CARTO %in% geocode_mains_Na$Id_cart, ] %>% 
     tidyr::unite("Info_sup", lieudit_p, compl_add_, pt_remarq_, sep = " ", na.rm = TRUE) %>% 
-    select(ID_CARTO, date_start, date_end_a, Commune, Adresse, CP, Info_sup, Match_addr, Loc_name)
+    select(ID_CARTO, date_start, date_end_a, Commune, Adresse, CP, Info_sup, Match_addr, Loc_name) %>% 
+    st_transform(4326)
 
 # attention il y une adresse non présente dans geocodage_clbv2.shp 
 geocode_mains_Na[!geocode_mains_Na$Id_cart %in% geocodage_clbv2.shp$ID_CARTO, ]
 
-st_write(geocode_mains_Na, dsn = "data/geocode_mains_Na.geojson")
-st_write(geocodage_clb_mains , dsn = "data/geocodage_clb_mains.geojson")
+st_write(geocode_mains_Na, dsn = "data/geocode_mains_Na.geojson", append=FALSE)
+st_write(geocodage_clb_mains , dsn = "data/geocodage_clb_mains.geojson", append=FALSE)
 
 # on exclue ce qui a été codé à la main
 # il faut verifier si cela correspond à quelque chose dans le geocodage ESRI

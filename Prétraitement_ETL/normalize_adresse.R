@@ -12,7 +12,9 @@ inst <- lapply(pkgs, library, character.only = TRUE)
 
 # toutes les adresses sans les 48 vides
 allsujet_SansNA.dat <- readRDS("data/allsujet_cleanNA.rds")
-geocodage_evs.shp <- sf::st_read("data/geocodev2.geojson", stringsAsFactors = FALSE)
+geocodage_evs.shp <- sf::st_read("data/geocodev2.geojson", stringsAsFactors = FALSE) %>% 
+                        sf::st_transform(2154)
+
 geocodage_clb.shp <- sf::st_read("data/Geocoding_Result.shp", stringsAsFactors = FALSE)
 
 
@@ -37,7 +39,7 @@ sujet.dat <- allsujet_SansNA.dat %>%
     dplyr::group_by(sujet) %>% 
     dplyr::summarize(Date_birth = first(Date_birth))
 
-# un cas de preparation de données à partir du geocoadage EVS
+# un exemple de preparation de données à partir du geocoadage EVS
 table_adresse_test <- geocodage_evs.shp %>% 
                            dplyr::mutate(sujet_id = substr(geocodage_evs.shp$Id_cart, 1,7),
                                     adresse_clb = as.numeric(str_extract(geocodage_evs.shp$Id_cart, pattern = "[0-9]{1,2}?$"))) %>% 
@@ -53,16 +55,16 @@ table_adresse_test <- geocodage_evs.shp %>%
 length(unique(table_adresse_test$sujet_id))
 
 # option 1 dans un csv
-write.table(table_adresse_test, 
-            "data/adresse.csv", 
-            sep = ";",
-            quote = FALSE,
-            row.names = FALSE,
-            col.names=FALSE) 
+# write.table(table_adresse_test, 
+#             "data/adresse.csv", 
+#             sep = ";",
+#             quote = FALSE,
+#             row.names = FALSE,
+#             col.names=FALSE) 
 
 # option 2 via un shapefile  
 
-st_write(table_adresse_test, dsn = "data/adresse.shp")
+# st_write(table_adresse_test, dsn = "data/adresse.shp")
 
 
 ##.###################################################################################33
@@ -78,27 +80,26 @@ st_write(table_adresse_test, dsn = "data/adresse.shp")
 
 ## 1. hors du geocodage main
 
+
+
 ## 2. lecture des deux fichiers geocoder à la main + celui que j'avais fait avant ===============
 
 ### 2.1 lecture geocodage mains fait en premier cf. precision_geocodage.R
+# j'ai touts reverifier en juillet
 
-oli_geocode.shp <- sf::st_read("data/geocode_mains_Na.geojson") %>% 
-                        dplyr::arrange(Id_cart)
+geocodage_evs_oli.shp <- sf::st_read("data/geocode_mains_Na.geojson") %>% 
+    dplyr::select(adresse_id = Id_cart,
+                  Date_start,
+                  Date_end,
+                  Commune,
+                  Adresse,
+                  Postal = Code_postal,
+                  precision = result_type) %>% 
+    sf::st_transform(2154)
 
-clb_mains_oli.shp <- sf::st_read("data/geocodage_clb_mains.geojson") %>% 
-                        dplyr::arrange(ID_CARTO)
+geocodage_evs_oli.shp$precision <- as.numeric(geocodage_evs_oli.shp$precision) 
 
-# il y a une diff de 1 entre ces deux là
-
-oli_geocode.shp <- oli_geocode.shp[oli_geocode.shp$Id_cart %in% clb_mains_oli.shp$ID_CARTO,]
-
-# la distance entre ce que j'ai codé à la main et ce qu'ESRI produit 
-# je fais une affectation par ordre verifier si pb et si oui passer par un join 
-
-clb_mains_oli.shp$dist <- st_distance(oli_geocode.shp, clb_mains_oli.shp, by_element = T)
-clb_mains_oli.shp$result_oli <- oli_geocode.shp$result_type
-
-st_write(clb_mains_oli.shp, dsn = "data/geocode_mains_olijully.geojson")
+summary(geocodage_evs_oli.shp)
 
 # on exporte et on va verifier à la main
 
@@ -116,7 +117,7 @@ RM2.shp <- sf::st_read("data/REgeocodage/RM2_OL.shp") %>%
 
 summary(RM2.shp)
 
-geocodage_clb_oli.shp <- sf::st_read("data/REgeocodage//geocodage_clb_oli.shp" ) %>% 
+geocodage_clb_oli.shp <- sf::st_read("data/REgeocodage/geocodage_clb_oli.shp" ) %>% 
                               dplyr::select(adresse_id = ID_CARTO,
                                             Date_start = date_start,
                                             Date_end = date_end_a,
@@ -145,3 +146,7 @@ on_ne_fera_pas_mieux_add.shp <- geocodage_clbv2.shp[geocodage_clbv2.shp$ID_CARTO
                         
 
 rm(on_ne_fera_pas_mieux.shp)
+
+##.###################################################################################33
+## II. Normalisation des adresses ====
+##.#################################################################################33
