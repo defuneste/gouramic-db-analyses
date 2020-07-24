@@ -17,6 +17,9 @@ geocodage_evs.shp <- sf::st_read("data/geocodev2.geojson", stringsAsFactors = FA
 
 geocodage_clb.shp <- sf::st_read("data/Geocoding_Result.shp", stringsAsFactors = FALSE)
 
+#correction formatage
+geocodage_clb.shp$date_start <- parse_date_time(geocodage_clb.shp$date_start, orders = c("my", "dmy"))
+geocodage_clb.shp$date_end_a <- parse_date_time(geocodage_clb.shp$date_end_a, orders = c("my", "dmy"))
 
 # 2- un seul fichier avec un point = une ligne
 
@@ -78,23 +81,22 @@ length(unique(table_adresse_test$sujet_id))
 # On peut avoir une localisation sur un lieu dit imprecis mais il nous faut cependant la 
 # meme adresse
 
-## 1. hors du geocodage main
 
+## 1. lecture des deux fichiers geocoder à la main + celui que j'avais fait avant ===============
 
-
-## 2. lecture des deux fichiers geocoder à la main + celui que j'avais fait avant ===============
-
-### 2.1 lecture geocodage mains fait en premier cf. precision_geocodage.R
+### 1.1 lecture geocodage mains fait en premier cf. precision_geocodage.R ========================
 # j'ai touts reverifier en juillet
 
 geocodage_evs_oli.shp <- sf::st_read("data/geocode_mains_Na.geojson") %>% 
     dplyr::select(adresse_id = Id_cart,
-                  Date_start,
-                  Date_end,
-                  Commune,
-                  Adresse,
-                  Postal = Code_postal,
+                  date_start = Date_start,
+                  date_end = Date_end,
+                  commune = Commune,
+                  adresse = Adresse,
+                  cp = Code_postal,
                   precision = result_type) %>% 
+    dplyr::mutate(sujet_id = substr(adresse_id, 1,7),
+                  source_codage = "main") %>% 
     sf::st_transform(2154)
 
 geocodage_evs_oli.shp$precision <- as.numeric(geocodage_evs_oli.shp$precision) 
@@ -103,49 +105,85 @@ summary(geocodage_evs_oli.shp)
 
 # on exporte et on va verifier à la main
 
-### 2.2 lecture geocodge olivier + matthieu 
+### 1.2 lecture geocodge olivier + matthieu ==========================
 
 RM2.shp <- sf::st_read("data/REgeocodage/RM2_OL.shp") %>% 
                 dplyr::select(adresse_id = Id_cart,
-                              Date_start,
-                              Date_end,
-                              Commune,
-                              Adresse,
-                              Postal,
+                              date_start = Date_start,
+                              date_end = Date_end,
+                              commune = Commune,
+                              adresse = Adresse,
+                              cp = Postal,
                               precision = New_Loc) %>% 
-                dplyr:: mutate(source_codage = "main")
+                dplyr:: mutate(sujet_id = substr(adresse_id, 1,7),
+                    source_codage = "main")
+
+RM2.shp$precision <- as.numeric(RM2.shp$precision)
 
 summary(RM2.shp)
 
 geocodage_clb_oli.shp <- sf::st_read("data/REgeocodage/geocodage_clb_oli.shp" ) %>% 
                               dplyr::select(adresse_id = ID_CARTO,
-                                            Date_start = date_start,
-                                            Date_end = date_end_a,
-                                            Commune,
-                                            Adresse,
-                                            CP,
+                                            date_start = date_start,
+                                            date_end = date_end_a,
+                                            commune = Commune,
+                                            adresse = Adresse,
+                                            cp = CP,
                                             New_LocNam) %>% 
                             dplyr::mutate(sujet_id = substr(adresse_id, 1,7),
-                                          precision = substr(New_LocNam, 1, 1))
+                                          precision = substr(New_LocNam, 1, 1), 
+                                          source_codage = "main") %>% 
+                            dplyr::select(-New_LocNam)
 
-summary(geocodage_clb_oli.shp ) 
+geocodage_clb_oli.shp$precision <- as.numeric(geocodage_clb_oli.shp$precision)
 
-### 2.3 on rajoute on_ne_fera_pas mieux.
+# un pb avec une adresse qui doit rester inconnue
+geocodage_clb_oli.shp$geometry[geocodage_clb_oli.shp$adresse_id == "20_0755_2"] <- c(NaN, NaN)
+geocodage_clb_oli.shp$precision[geocodage_clb_oli.shp$adresse_id == "20_0755_2"] <- NA
+
+summary(geocodage_clb_oli.shp) 
+
+### 1.3 on rajoute on_ne_fera_pas mieux. ===========================
 
 on_ne_fera_pas_mieux.shp <- sf::st_read("data/on_fera_pas_mieux.csv")
 
-on_ne_fera_pas_mieux_add.shp <- geocodage_clbv2.shp[geocodage_clbv2.shp$ID_CARTO %in% on_ne_fera_pas_mieux.shp$Id_cart,] %>% 
+on_ne_fera_pas_mieux_add.shp <- geocodage_clb.shp[geocodage_clb.shp$ID_CARTO %in% on_ne_fera_pas_mieux.shp$Id_cart,] %>% 
                         dplyr::select(adresse_id = ID_CARTO,
-                                      Date_start = date_start,
-                                      Date_end = date_end_a,Commune,
-                                      Adresse,
-                                      CP,
+                                      date_start = date_start,
+                                      date_end = date_end_a,
+                                      commune = COMMUNE,
+                                      adresse = Adresse,
+                                      cp = CP,
                                       Loc_name) %>% 
                         dplyr::mutate(sujet_id = substr(adresse_id, 1,7),
-                                      precision = substr(Loc_name, 1, 1))
-                        
+                                      precision = substr(Loc_name, 1, 1), 
+                                      source_codage = "ESRI") %>% 
+                        dplyr::select(-Loc_name)
+
+on_ne_fera_pas_mieux_add.shp$precision <- as.numeric(on_ne_fera_pas_mieux_add.shp$precision)
+
+summary(on_ne_fera_pas_mieux_add.shp) 
+                     
 
 rm(on_ne_fera_pas_mieux.shp)
+
+### 1.4 on regroupe le tout 
+
+## un vecteur avec le bon ordre de columns 
+
+vec_ordre <- c("adresse_id", "date_start", "date_end", "commune", "cp", "sujet_id", "precision", "source_codage", "geometry")
+
+geocodage_evs_oli.shp <- geocodage_evs_oli.shp[vec_ordre]
+on_ne_fera_pas_mieux_add.shp <- on_ne_fera_pas_mieux_add.shp[vec_ordre]
+RM2.shp <- RM2.shp[vec_ordre]
+geocodage_clb_oli.shp <- geocodage_clb_oli.shp[vec_ordre]
+
+geocode_main_totale.shp <- bind_rows(list(geocodage_evs_oli.shp, on_ne_fera_pas_mieux_add.shp, RM2.shp, geocodage_clb_oli.shp))
+
+rm(geocodage_evs_oli.shp, on_ne_fera_pas_mieux_add.shp, RM2.shp, geocodage_clb_oli.shp, vec_ordre)
+
+## 2. hors du geocodage main ===================
+
 
 ##.###################################################################################33
 ## II. Normalisation des adresses ====
