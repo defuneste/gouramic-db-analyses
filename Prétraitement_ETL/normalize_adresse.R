@@ -15,7 +15,7 @@ allsujet_SansNA.dat <- readRDS("data/allsujet_cleanNA.rds")
 geocodage_evs.shp <- sf::st_read("data/geocodev2.geojson", stringsAsFactors = FALSE) %>% 
                         sf::st_transform(2154)
 
-geocodage_clb.shp <- sf::st_read("data/Geocoding_Result.shp", stringsAsFactors = FALSE)
+geocodage_clb.shp <- sf::st_read("data/sortie_15_04.shp" , stringsAsFactors = FALSE)
 
 #correction formatage
 geocodage_clb.shp$date_start <- parse_date_time(geocodage_clb.shp$date_start, orders = c("my", "dmy"))
@@ -151,7 +151,7 @@ on_ne_fera_pas_mieux_add.shp <- geocodage_clb.shp[geocodage_clb.shp$ID_CARTO %in
                         dplyr::select(adresse_id = ID_CARTO,
                                       date_start = date_start,
                                       date_end = date_end_a,
-                                      commune = COMMUNE,
+                                      commune = Commune,
                                       adresse = Adresse,
                                       cp = CP,
                                       Loc_name) %>% 
@@ -184,7 +184,53 @@ rm(geocodage_evs_oli.shp, on_ne_fera_pas_mieux_add.shp, RM2.shp, geocodage_clb_o
 
 ## 2. hors du geocodage main ===================
 
+summary(geocodage_clb.shp)
 
+geocodage_clb_tot.shp <- geocodage_clb.shp %>% 
+                            dplyr::select(adresse_id = ID_CARTO,
+                                date_start = date_start,
+                                date_end = date_end_a,
+                                commune = Commune,
+                                adresse = Adresse,
+                                cp = CP,
+                                Loc_name) %>% 
+                            dplyr::mutate(sujet_id = substr(adresse_id, 1,7),
+                                        precision = substr(Loc_name, 1, 1), 
+                                        source_codage = "ESRI") %>% 
+                            dplyr::select(-Loc_name)
+
+rm(geocodage_clb.shp)
+
+## moins ce qui a été fait à la main 
+
+geocodage_clb_auto.shp <- geocodage_clb_tot.shp[!geocodage_clb_tot.shp$adresse_id %in% geocode_main_totale.shp$adresse_id,] 
+
+rm(geocodage_clb_tot.shp)
+
+# si on enleve les cas avec une seule adresse manquante et ceux qui n'ont pas de date départ
+# il y a des #value etrange avec des mauvais geocodages
+# sf::st_write(test[test$commune == "#VALUE!",], dsn = "data/value.geojson")
+
+arrondissement.shp <-  sf::st_read("data/value.geojson")
+
+geocodage_clb_auto.shp <- geocodage_clb_auto.shp[geocodage_clb_auto.shp$sujet_id %in% sujet.dat$sujet,] %>% 
+        dplyr::filter(!is.na(date_start)) 
+# on doit donc rajouter ces 23 à la mains
+
+geocodage_clb_auto.shp <- geocodage_clb_auto.shp [!geocodage_clb_auto.shp $adresse_id %in% arrondissement.shp$adresse_id,] %>% 
+                        bind_rows(arrondissement.shp)
+
+geocodage_clb_auto.shp$precision <- as.numeric(geocodage_clb_auto.shp$precision)
+
+## 3. Tous ensemble ========
+
+geocodage_adresse.shp <- bind_rows(geocodage_clb_auto.shp, geocode_main_totale.shp)
+
+rm(geocodage_clb_auto.shp, geocode_main_totale.shp)
+  
 ##.###################################################################################33
 ## II. Normalisation des adresses ====
 ##.#################################################################################33
+
+
+
