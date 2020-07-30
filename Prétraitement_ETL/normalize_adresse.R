@@ -43,19 +43,19 @@ sujet.dat <- allsujet_SansNA.dat %>%
     dplyr::summarize(Date_birth = first(Date_birth))
 
 # un exemple de preparation de données à partir du geocoadage EVS
-table_adresse_test <- geocodage_evs.shp %>% 
-                           dplyr::mutate(sujet_id = substr(geocodage_evs.shp$Id_cart, 1,7),
-                                    adresse_clb = as.numeric(str_extract(geocodage_evs.shp$Id_cart, pattern = "[0-9]{1,2}?$"))) %>% 
-                            dplyr::select(sujet_id, adresse_clb, result_type, source_loc, geometry) %>% 
-                            dplyr::distinct(.keep_all = TRUE) %>% 
-                            dplyr::mutate(adresse_id = row_number()) %>% 
-                            # me faut reorder et mettre dans le bon CRS 
-                            dplyr::select(adresse_id, sujet_id, adresse_clb, result_type,source_loc, geometry) %>% 
-                            sf::st_transform(2154) %>% 
-                            # ici on filtre les sujet sans residences
-                            dplyr::filter(sujet_id %in% sujet.dat$sujet)
+# table_adresse_test <- geocodage_evs.shp %>% 
+#                            dplyr::mutate(sujet_id = substr(geocodage_evs.shp$Id_cart, 1,7),
+#                                     adresse_clb = as.numeric(str_extract(geocodage_evs.shp$Id_cart, pattern = "[0-9]{1,2}?$"))) %>% 
+#                             dplyr::select(sujet_id, adresse_clb, result_type, source_loc, geometry) %>% 
+#                             dplyr::distinct(.keep_all = TRUE) %>% 
+#                             dplyr::mutate(adresse_id = row_number()) %>% 
+#                             # me faut reorder et mettre dans le bon CRS 
+#                             dplyr::select(adresse_id, sujet_id, adresse_clb, result_type,source_loc, geometry) %>% 
+#                             sf::st_transform(2154) %>% 
+#                             # ici on filtre les sujet sans residences
+#                             dplyr::filter(sujet_id %in% sujet.dat$sujet)
 
-length(unique(table_adresse_test$sujet_id))
+# length(unique(table_adresse_test$sujet_id))
 
 # option 1 dans un csv
 # write.table(table_adresse_test, 
@@ -96,7 +96,7 @@ geocodage_evs_oli.shp <- sf::st_read("data/geocode_mains_Na.geojson") %>%
                   cp = Code_postal,
                   precision = result_type) %>% 
     dplyr::mutate(sujet_id = substr(adresse_id, 1,7),
-                  source_codage = "main") %>% 
+                  source_codage = "Main") %>% 
     sf::st_transform(2154)
 
 geocodage_evs_oli.shp$precision <- as.numeric(geocodage_evs_oli.shp$precision) 
@@ -116,7 +116,7 @@ RM2.shp <- sf::st_read("data/REgeocodage/RM2_OL.shp") %>%
                               cp = Postal,
                               precision = New_Loc) %>% 
                 dplyr:: mutate(sujet_id = substr(adresse_id, 1,7),
-                    source_codage = "main")
+                    source_codage = "Main")
 
 RM2.shp$precision <- as.numeric(RM2.shp$precision)
 
@@ -132,7 +132,7 @@ geocodage_clb_oli.shp <- sf::st_read("data/REgeocodage/geocodage_clb_oli.shp" ) 
                                             New_LocNam) %>% 
                             dplyr::mutate(sujet_id = substr(adresse_id, 1,7),
                                           precision = substr(New_LocNam, 1, 1), 
-                                          source_codage = "main") %>% 
+                                          source_codage = "Main") %>% 
                             dplyr::select(-New_LocNam)
 
 geocodage_clb_oli.shp$precision <- as.numeric(geocodage_clb_oli.shp$precision)
@@ -199,6 +199,8 @@ geocodage_clb_tot.shp <- geocodage_clb.shp %>%
                                         source_codage = "ESRI") %>% 
                             dplyr::select(-Loc_name)
 
+geocodage_clb_tot.shp$precision <- as.numeric(geocodage_clb_tot.shp$precision)
+
 rm(geocodage_clb.shp)
 
 ## moins ce qui a été fait à la main 
@@ -213,24 +215,47 @@ rm(geocodage_clb_tot.shp)
 
 arrondissement.shp <-  sf::st_read("data/value.geojson")
 
+arrondissement.shp$precision <- as.numeric(arrondissement.shp$precision)
+
 geocodage_clb_auto.shp <- geocodage_clb_auto.shp[geocodage_clb_auto.shp$sujet_id %in% sujet.dat$sujet,] %>% 
         dplyr::filter(!is.na(date_start)) 
+
+summary(geocodage_clb_auto.shp)
+
 # on doit donc rajouter ces 23 à la mains
-
-geocodage_clb_auto.shp <- geocodage_clb_auto.shp [!geocodage_clb_auto.shp $adresse_id %in% arrondissement.shp$adresse_id,] %>% 
+geocodage_clb_auto.shp <- geocodage_clb_auto.shp[!geocodage_clb_auto.shp $adresse_id %in% arrondissement.shp$adresse_id,] %>% 
                         bind_rows(arrondissement.shp)
-
-geocodage_clb_auto.shp$precision <- as.numeric(geocodage_clb_auto.shp$precision)
 
 ## 3. Tous ensemble ========
 
 geocodage_adresse.shp <- bind_rows(geocodage_clb_auto.shp, geocode_main_totale.shp)
 
 rm(geocodage_clb_auto.shp, geocode_main_totale.shp)
-  
+
 ##.###################################################################################33
 ## II. Normalisation des adresses ====
 ##.#################################################################################33
 
+## 1. Correction de certains points 
+## pour le calcul du distance on va enlever les territoires d'outre mer et des NA etranges
+geocodage_adresse.shp <- subset(geocodage_adresse.shp, !is.na(geocodage_adresse.shp$precision) & precision < 100)
 
+# on est en lambert 93 donc la distance est en m 
+summary(geocodage_adresse.shp)
 
+# il y a des NA à corriger dans les dates .....
+geocodage_adresse.shp[is.na(geocodage_adresse.shp$geometry),]
+
+mat_dist <- st_distance(geocodage_adresse.shp)
+
+hc <- hclust(as.dist(mat_dist), method="complete")
+
+# sur 10 m
+d=10
+
+geocodage_adresse.shp$cluster <- cutree(hc, h=d)
+# peut être utile de faire un filtre 
+# on va faire un buffer de 10 m et compter 
+
+buffer_10 <-st_buffer(geocodage_adresse.shp, 10)
+geocodage_adresse.shp$nb_cluster <-lengths(st_intersects(geocodage_adresse.shp, buffer_10))
