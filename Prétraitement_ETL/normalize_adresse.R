@@ -254,11 +254,20 @@ hc <- hclust(as.dist(mat_dist), method="complete")
 d=1
 
 geocodage_adresse.shp$cluster <- cutree(hc, h=d)
+# sur une plus grande distance : 50 m cf plot plus bas
+geocodage_adresse.shp$bigcluster <- cutree(hc, h=50)
 ## 2.2 Avec un buffer de d distance et un intersects
 # peut être utile de faire un filtre 
 
 buffer_10 <-st_buffer(geocodage_adresse.shp, d)
+buffer_50 <- st_buffer(geocodage_adresse.shp, 50)
+
 geocodage_adresse.shp$nb_cluster <-lengths(st_intersects(geocodage_adresse.shp, buffer_10))
+geocodage_adresse.shp$nb_bigcluster <-lengths(st_intersects(geocodage_adresse.shp, buffer_50))
+
+rm(hc, buffer_10, buffer_50)
+
+##  2.2 Plot pour regarder l'evolution du clustering en fonction de la distance  ========
 
 # une fonction de ce qui est fait avec le buffer
 number_cluster <- function(data = geocodage_adresse.shp, d) {
@@ -273,6 +282,7 @@ cluster_dist <- rbind(
     number_cluster(d = 1),
     number_cluster(d = 5),
     number_cluster(d = 10),
+    number_cluster(d = 25),
     number_cluster(d = 50),
     number_cluster(d = 100)
 )
@@ -283,6 +293,10 @@ plot(cluster_dist ,
     type = "b",
     ylab = "Nb de clusters avec plus d'une adresse",
     xlab = "distance (m)")
+
+
+# il y a clusters dont les adresses sont proches au m près on peut les considérer comme des doublons quasi sûr 
+# on peut donc regarder celle qui se regroupe à 50 m près moins celle au m près pour avoir une liste de "probable"
 
 
 
