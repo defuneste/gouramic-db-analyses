@@ -236,26 +236,53 @@ rm(geocodage_clb_auto.shp, geocode_main_totale.shp)
 ## II. Normalisation des adresses ====
 ##.#################################################################################33
 
-## 1. Correction de certains points 
+## 1. Correction de certains points ========
 ## pour le calcul du distance on va enlever les territoires d'outre mer et des NA etranges
+# il y a des NA à corriger dans les dates .....
 geocodage_adresse.shp <- subset(geocodage_adresse.shp, !is.na(geocodage_adresse.shp$precision) & precision < 100)
-
-# on est en lambert 93 donc la distance est en m 
 summary(geocodage_adresse.shp)
 
-# il y a des NA à corriger dans les dates .....
-geocodage_adresse.shp[is.na(geocodage_adresse.shp$geometry),]
+## 2. Cluster des adresses  ========
+# on est en lambert 93 donc la distance est en m 
 
+## 2.1 Avec une matrice de distance/cluster =======
+# avantage permet de savoir qu'elles sont les adresses dans le meme cluster
 mat_dist <- st_distance(geocodage_adresse.shp)
-
 hc <- hclust(as.dist(mat_dist), method="complete")
 
-# sur 10 m
-d=10
+# sur d m
+d=1
 
 geocodage_adresse.shp$cluster <- cutree(hc, h=d)
+## 2.2 Avec un buffer de d distance et un intersects
 # peut être utile de faire un filtre 
-# on va faire un buffer de 10 m et compter 
 
-buffer_10 <-st_buffer(geocodage_adresse.shp, 10)
+buffer_10 <-st_buffer(geocodage_adresse.shp, d)
 geocodage_adresse.shp$nb_cluster <-lengths(st_intersects(geocodage_adresse.shp, buffer_10))
+
+# une fonction de ce qui est fait avec le buffer
+number_cluster <- function(data = geocodage_adresse.shp, d) {
+                            buffer_XX <- st_buffer(geocodage_adresse.shp, d)
+                            dt <- data.frame(d,
+                                       sum(lengths(st_intersects(geocodage_adresse.shp, buffer_XX)) != 1))
+                            colnames(dt) <- c("d", "nb")
+                            return(dt)
+}
+
+cluster_dist <- rbind(
+    number_cluster(d = 1),
+    number_cluster(d = 5),
+    number_cluster(d = 10),
+    number_cluster(d = 50),
+    number_cluster(d = 100)
+)
+
+# graphique du nombre de cluster  
+
+plot(cluster_dist ,
+    type = "b",
+    ylab = "Nb de clusters avec plus d'une adresse",
+    xlab = "distance (m)")
+
+
+
