@@ -94,6 +94,7 @@ geocodage_evs_oli.shp <- sf::st_read("data/geocode_mains_Na.geojson") %>%
                   commune = Commune,
                   adresse = Adresse,
                   cp = Code_postal,
+                  info_sup = Info_sup,
                   precision = result_type) %>% 
     dplyr::mutate(sujet_id = substr(adresse_id, 1,7),
                   source_codage = "Main") %>% 
@@ -114,6 +115,7 @@ RM2.shp <- sf::st_read("data/REgeocodage/RM2_OL.shp") %>%
                               commune = Commune,
                               adresse = Adresse,
                               cp = Postal,
+                              info_sup = Info_sup,
                               precision = New_Loc) %>% 
                 dplyr:: mutate(sujet_id = substr(adresse_id, 1,7),
                     source_codage = "Main")
@@ -129,6 +131,7 @@ geocodage_clb_oli.shp <- sf::st_read("data/REgeocodage/geocodage_clb_oli.shp" ) 
                                             commune = Commune,
                                             adresse = Adresse,
                                             cp = CP,
+                                            info_sup = Info_sup,
                                             New_LocNam) %>% 
                             dplyr::mutate(sujet_id = substr(adresse_id, 1,7),
                                           precision = substr(New_LocNam, 1, 1), 
@@ -148,17 +151,20 @@ summary(geocodage_clb_oli.shp)
 on_ne_fera_pas_mieux.shp <- sf::st_read("data/on_fera_pas_mieux.csv")
 
 on_ne_fera_pas_mieux_add.shp <- geocodage_clb.shp[geocodage_clb.shp$ID_CARTO %in% on_ne_fera_pas_mieux.shp$Id_cart,] %>% 
+                        tidyr::unite("info_sup", lieudit_p, compl_add_, pt_remarq_, na.rm = TRUE) %>% 
                         dplyr::select(adresse_id = ID_CARTO,
                                       date_start = date_start,
                                       date_end = date_end_a,
                                       commune = Commune,
                                       adresse = Adresse,
                                       cp = CP,
+                                      info_sup,
                                       Loc_name) %>% 
                         dplyr::mutate(sujet_id = substr(adresse_id, 1,7),
                                       precision = substr(Loc_name, 1, 1), 
                                       source_codage = "ESRI") %>% 
                         dplyr::select(-Loc_name)
+
 
 on_ne_fera_pas_mieux_add.shp$precision <- as.numeric(on_ne_fera_pas_mieux_add.shp$precision)
 
@@ -171,7 +177,7 @@ rm(on_ne_fera_pas_mieux.shp)
 
 ## un vecteur avec le bon ordre de columns 
 
-vec_ordre <- c("adresse_id", "date_start", "date_end", "commune", "cp", "sujet_id", "precision", "source_codage", "geometry")
+vec_ordre <- c("adresse_id", "date_start", "date_end", "commune", "cp", "info_sup","sujet_id", "precision", "source_codage", "geometry")
 
 geocodage_evs_oli.shp <- geocodage_evs_oli.shp[vec_ordre]
 on_ne_fera_pas_mieux_add.shp <- on_ne_fera_pas_mieux_add.shp[vec_ordre]
@@ -187,12 +193,14 @@ rm(geocodage_evs_oli.shp, on_ne_fera_pas_mieux_add.shp, RM2.shp, geocodage_clb_o
 summary(geocodage_clb.shp)
 
 geocodage_clb_tot.shp <- geocodage_clb.shp %>% 
+                            tidyr::unite("info_sup", lieudit_p, compl_add_, pt_remarq_, na.rm = TRUE) %>%
                             dplyr::select(adresse_id = ID_CARTO,
                                 date_start = date_start,
                                 date_end = date_end_a,
                                 commune = Commune,
                                 adresse = Adresse,
                                 cp = CP,
+                                info_sup,
                                 Loc_name) %>% 
                             dplyr::mutate(sujet_id = substr(adresse_id, 1,7),
                                         precision = substr(Loc_name, 1, 1), 
@@ -255,12 +263,12 @@ d=1
 
 geocodage_adresse.shp$cluster <- cutree(hc, h=d)
 # sur une plus grande distance : 50 m cf plot plus bas
-geocodage_adresse.shp$bigcluster <- cutree(hc, h=50)
+geocodage_adresse.shp$bigcluster <- cutree(hc, h=100)
 ## 2.2 Avec un buffer de d distance et un intersects
 # peut être utile de faire un filtre 
 
 buffer_10 <-st_buffer(geocodage_adresse.shp, d)
-buffer_50 <- st_buffer(geocodage_adresse.shp, 50)
+buffer_50 <- st_buffer(geocodage_adresse.shp, 100)
 
 geocodage_adresse.shp$nb_cluster <-lengths(st_intersects(geocodage_adresse.shp, buffer_10))
 geocodage_adresse.shp$nb_bigcluster <-lengths(st_intersects(geocodage_adresse.shp, buffer_50))
@@ -296,7 +304,14 @@ plot(cluster_dist ,
 
 
 # il y a clusters dont les adresses sont proches au m près on peut les considérer comme des doublons quasi sûr 
+# cela correspond soit à des adresses identiques précises soit à des adresses peu precise, ie meme ville
 # on peut donc regarder celle qui se regroupe à 50 m près moins celle au m près pour avoir une liste de "probable"
 
+View(geocodage_adresse.shp[geocodage_adresse.shp$nb_bigcluster > 1 & geocodage_adresse.shp$nb_cluster == 1,] %>% 
+                        dplyr::arrange(bigcluster))
 
-
+# on a un peu de tout : des adresses différentes mais proches, comme des numeros de rues, 
+# des adresses proches avec des niveau de précision différents exemple,  un numero de rue (1) + la rue en question
+# des rues proches mais pas identiques 
+# on arrive à regrouper en partie le cas des écoles, lycées, casernes en partie geocodés à la main mais c'est pas tip top
+# je pense rajouter "info_sup" dans geocodage adresse au moins pour verifier, puis pe le retirer
