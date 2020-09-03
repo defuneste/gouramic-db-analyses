@@ -292,7 +292,13 @@ cluster_dist <- rbind(
     number_cluster(d = 10),
     number_cluster(d = 25),
     number_cluster(d = 50),
-    number_cluster(d = 100)
+    number_cluster(d = 100),
+    number_cluster(d = 150),
+    number_cluster(d = 200)
+#    number_cluster(d = 500),
+#    number_cluster(d = 1000),
+#    number_cluster(d = 10000)
+    
 )
 
 # graphique du nombre de cluster  
@@ -315,3 +321,7 @@ View(geocodage_adresse.shp[geocodage_adresse.shp$nb_bigcluster > 1 & geocodage_a
 # des rues proches mais pas identiques 
 # on arrive à regrouper en partie le cas des écoles, lycées, casernes en partie geocodés à la main mais c'est pas tip top
 # je pense rajouter "info_sup" dans geocodage adresse au moins pour verifier, puis pe le retirer
+# j'ai exporté sur Qgis avec 1 m et 100 m puis j'ai selectionner les cluster bon et pas bon (à la main) 
+
+cluster.shp <- st_read("data/cluster16_08.geojson")
+str(cluster.shp)
