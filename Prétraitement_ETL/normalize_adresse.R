@@ -313,7 +313,7 @@ plot(cluster_dist ,
 # cela correspond soit à des adresses identiques précises soit à des adresses peu precise, ie meme ville
 # on peut donc regarder celle qui se regroupe à 50 m près moins celle au m près pour avoir une liste de "probable"
 
-View(geocodage_adresse.shp[geocodage_adresse.shp$nb_bigcluster > 1 & geocodage_adresse.shp$nb_cluster == 1,] %>% 
+View(geocodage_adresse.shp[geocodage_adresse.shp$nb_bigcluster > 1 & geocodage_adresse.shp$nb_cluster > 1,] %>% 
                         dplyr::arrange(bigcluster))
 
 # on a un peu de tout : des adresses différentes mais proches, comme des numeros de rues, 
@@ -325,3 +325,9 @@ View(geocodage_adresse.shp[geocodage_adresse.shp$nb_bigcluster > 1 & geocodage_a
 
 cluster.shp <- st_read("data/cluster16_08.geojson")
 str(cluster.shp)
+
+View(cluster.shp)
+
+# il faut retirer les cluster 
+
+test.shp <- geocodage_adresse.shp[!geocodage_adresse.shp$adresse_id %in% cluster.shp$adresse_id,] 
