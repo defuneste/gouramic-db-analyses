@@ -321,19 +321,33 @@ View(geocodage_adresse.shp[geocodage_adresse.shp$nb_bigcluster > 1 & geocodage_a
 # des rues proches mais pas identiques 
 # on arrive à regrouper en partie le cas des écoles, lycées, casernes en partie geocodés à la main mais c'est pas tip top
 # je pense rajouter "info_sup" dans geocodage adresse au moins pour verifier, puis pe le retirer
-# j'ai exporté sur Qgis avec 1 m et 100 m puis j'ai selectionner les cluster bon et pas bon (à la main) 
+# j'ai exporté sur Qgis avec 1 m et 100 m puis j'ai selectionner les clusters bon et pas bon (à la main) 
 
 cluster.shp <- st_read("data/cluster16_08.geojson")
-str(cluster.shp)
+# str(cluster.shp)
 
-View(cluster.shp)
-
+# un peu de nettoyage on garde le cluster le plus large 
+# on eneleve le cluster si iden == 0
 cluster.shp <- cluster.shp  %>% 
     mutate(bigcluster = ifelse(idem == 1, bigcluster, 0) ) %>% 
-    select(-c("cluster", "nb_cluster", "nb_bigcluster", "idem")) 
+    select(-c("cluster", "nb_cluster", "idem"))  # , "nb_bigcluster"
 
-# il faut changer la loc des cluster par le point au milieu ? 
+hist(cluster.shp$nb_bigcluster)
+# il faut changer la loc des clusters par le point au milieu ? 
+# comment definit on le milieu 
+# cas avec deux points et cas avec plus de deux points 
 
-# il faut retirer les cluster 
+# cas 3 points = polygone
 
+cluster3pt.shp <- cluster.shp[cluster.shp$nb_bigcluster > 4,]
+
+# attention ici meme si on a plusieurs point ils peuvent se superposer donc on ne peut calculer le polygones
+cluster_3pts <- aggregate(
+                    cluster3pt.shp$geometry,
+                    list(cluster3pt.shp$bigcluster),
+                    function(g){st_cast(st_combine(g),"POLYGON")}
+                            )
+
+
+# il faut retirer les clusters 
 test.shp <- geocodage_adresse.shp[!geocodage_adresse.shp$adresse_id %in% cluster.shp$adresse_id,] 
