@@ -328,6 +328,12 @@ str(cluster.shp)
 
 View(cluster.shp)
 
+cluster.shp <- cluster.shp  %>% 
+    mutate(bigcluster = ifelse(idem == 1, bigcluster, 0) ) %>% 
+    select(-c("cluster", "nb_cluster", "nb_bigcluster", "idem")) 
+
+# il faut changer la loc des cluster par le point au milieu ? 
+
 # il faut retirer les cluster 
 
 test.shp <- geocodage_adresse.shp[!geocodage_adresse.shp$adresse_id %in% cluster.shp$adresse_id,] 
