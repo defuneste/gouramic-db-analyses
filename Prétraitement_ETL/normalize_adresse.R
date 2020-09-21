@@ -238,7 +238,7 @@ geocodage_clb_auto.shp <- geocodage_clb_auto.shp[!geocodage_clb_auto.shp $adress
 
 geocodage_adresse.shp <- bind_rows(geocodage_clb_auto.shp, geocode_main_totale.shp)
 
-rm(geocodage_clb_auto.shp, geocode_main_totale.shp)
+rm(geocodage_clb_auto.shp, geocode_main_totale.shp, arrondissement.shp, geocodage_evs.shp)
 
 ##.###################################################################################33
 ## II. Normalisation des adresses ====
@@ -268,12 +268,12 @@ geocodage_adresse.shp$bigcluster <- cutree(hc, h=100)
 # peut être utile de faire un filtre 
 
 buffer_10 <-st_buffer(geocodage_adresse.shp, d)
-buffer_50 <- st_buffer(geocodage_adresse.shp, 100)
+buffer_50 <- st_buffer(geocodage_adresse.shp, 100) # buffer de 100 m et pas bufer_50 mauvais nom
 
 geocodage_adresse.shp$nb_cluster <-lengths(st_intersects(geocodage_adresse.shp, buffer_10))
 geocodage_adresse.shp$nb_bigcluster <-lengths(st_intersects(geocodage_adresse.shp, buffer_50))
 
-rm(hc, buffer_10, buffer_50)
+rm(hc, buffer_10, buffer_50, mat_dist)
 
 ##  2.2 Plot pour regarder l'evolution du clustering en fonction de la distance  ========
 
@@ -308,13 +308,14 @@ plot(cluster_dist ,
     ylab = "Nb de clusters avec plus d'une adresse",
     xlab = "distance (m)")
 
+rm(d)
 
 # il y a clusters dont les adresses sont proches au m près on peut les considérer comme des doublons quasi sûr 
 # cela correspond soit à des adresses identiques précises soit à des adresses peu precise, ie meme ville
 # on peut donc regarder celle qui se regroupe à 50 m près moins celle au m près pour avoir une liste de "probable"
 
-View(geocodage_adresse.shp[geocodage_adresse.shp$nb_bigcluster > 1 & geocodage_adresse.shp$nb_cluster > 1,] %>% 
-                        dplyr::arrange(bigcluster))
+# View(geocodage_adresse.shp[geocodage_adresse.shp$nb_bigcluster > 1 & geocodage_adresse.shp$nb_cluster > 1,] %>% 
+#                        dplyr::arrange(bigcluster))
 
 # on a un peu de tout : des adresses différentes mais proches, comme des numeros de rues, 
 # des adresses proches avec des niveaux de précision différents exemple,  un numero de rue (1) + la rue en question
@@ -322,36 +323,39 @@ View(geocodage_adresse.shp[geocodage_adresse.shp$nb_bigcluster > 1 & geocodage_a
 # on arrive à regrouper en partie le cas des écoles, lycées, casernes en partie geocodés à la main mais c'est pas tip top
 # je pense rajouter "info_sup" dans geocodage adresse au moins pour verifier, puis pe le retirer
 # j'ai exporté sur Qgis avec 1 m et 100 m puis j'ai selectionner les clusters bon et pas bon (à la main) 
+# le résultats est cluster16_08.geojson
 
 cluster.shp <- st_read("data/cluster16_08.geojson")
 # str(cluster.shp)
 
 # un peu de nettoyage on garde le cluster le plus large 
-# on eneleve le cluster si iden == 0
+# on eneleve le cluster si idem == 0 ie n'est pas un cluster et du coup prend la valeur de 0
 cluster.shp <- cluster.shp  %>% 
     mutate(bigcluster = ifelse(idem == 1, bigcluster, 0) ) %>% 
     select(-c("cluster", "nb_cluster", "idem")) %>% 
-    filter(bigcluster != 0)
+    filter(bigcluster != 0) # on retire les non cluster
 
 # hist(cluster.shp$nb_bigcluster)
 
-# il faut changer la loc des clusters par le point au milieu ? 
-# comment definit on le milieu 
+# il faut changer la loc des points formant le clusters par le point au milieu 
+# comment definit-on le milieu ? 
 # cas avec deux points et cas avec plus de deux points 
 
 centre_cluster <- cluster.shp %>% 
     filter(nb_bigcluster >= 2) %>% 
     group_by(bigcluster) %>% 
-    distinct(count = n_distinct(geometry) ) %>% 
+    distinct(count = n_distinct(geometry) ) %>% # on produit un comptage de geometry distinct 
     st_drop_geometry() %>% 
     right_join(cluster.shp, by = "bigcluster") %>% 
     ungroup() %>% 
     st_as_sf(sf_column_name = "geometry")
 
  
- # attention ici meme si on a plusieurs point ils peuvent se superposer donc on ne peut calculer le polygones
- # attention ne marche que pour un cas
- 
+# attention ici meme si on a plusieurs points ils peuvent :
+# - se superposer donc on ne peut calculer le polygones
+# - n'avoir que deux points differents : lignes
+
+# attention ne marche que pour un cas
 centre_cluster$geometry[centre_cluster$count == 3] <- st_centroid(st_combine(st_as_sf(centre_cluster[centre_cluster$count == 3,])) , "POLYGON")
  
 # centroid marche pour une ligne, vu notre cas il sera sur la ligne mais utiliser une variante si ligne courbe
@@ -360,10 +364,10 @@ centre_cluster_ligne <- aggregate(
         list(centre_cluster$bigcluster[centre_cluster$count == 2]),
         function(x){st_centroid(st_cast(st_combine(x),"LINESTRING"))} 
         )
-# match est utilise pour produire un vectuer d'indexation attribuant on va attribuer le poin
 
+# match est utilise pour produire un vectuer d'indexation attribuant on va attribuer le poin
 centre_cluster$geometry[centre_cluster$count == 2] <- st_sfc(centre_cluster_ligne$geometry)[match(centre_cluster$bigcluster[centre_cluster$count == 2],  centre_cluster_ligne$Group.1)]
- 
+
 
 # il faut retirer les clusters 
-test.shp <- geocodage_adresse.shp[!geocodage_adresse.shp$adresse_id %in% cluster.shp$adresse_id,] 
+test.shp <- geocodage_adresse.shp[!geocodage_adresse.shp$adresse_id %in% centre_cluster$adresse_id,] 
