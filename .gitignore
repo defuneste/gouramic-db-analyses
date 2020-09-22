@@ -2,7 +2,8 @@
 .Rhistory
 .RData
 .Ruserdata
-# ignore de data, visu et rapport
+# ignore de data, visu et rapport et code
+code.R
 /data
 /visu
 /rapport/image

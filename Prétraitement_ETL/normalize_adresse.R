@@ -250,7 +250,7 @@ rm(geocodage_clb_auto.shp, geocode_main_totale.shp, arrondissement.shp, geocodag
 geocodage_adresse.shp <- subset(geocodage_adresse.shp, !is.na(geocodage_adresse.shp$precision) & precision < 100)
 summary(geocodage_adresse.shp)
 
-## 2. Cluster des adresses  ========
+## 2. Cluster des adresses  =========================================
 # on est en lambert 93 donc la distance est en m 
 
 ## 2.1 Avec une matrice de distance/cluster =======
@@ -275,7 +275,7 @@ geocodage_adresse.shp$nb_bigcluster <-lengths(st_intersects(geocodage_adresse.sh
 
 rm(hc, buffer_10, buffer_50, mat_dist)
 
-##  2.2 Plot pour regarder l'evolution du clustering en fonction de la distance  ========
+##  2.2 Plot pour regarder l'evolution du clustering en fonction de la distance  ========================
 
 # une fonction de ce qui est fait avec le buffer
 number_cluster <- function(data = geocodage_adresse.shp, d) {
@@ -368,6 +368,22 @@ centre_cluster_ligne <- aggregate(
 # match est utilise pour produire un vectuer d'indexation attribuant on va attribuer le poin
 centre_cluster$geometry[centre_cluster$count == 2] <- st_sfc(centre_cluster_ligne$geometry)[match(centre_cluster$bigcluster[centre_cluster$count == 2],  centre_cluster_ligne$Group.1)]
 
+# on prepare pour un rajout
+centre_cluster_clean <- centre_cluster %>% 
+        group_by(bigcluster) %>% 
+        summarize(adresse_id = first(adresse_id),
+                  sujet_id = first(sujet_id),
+                  precision = first(precision),
+                  source_codage = first(source_codage)) %>% 
+        select(-bigcluster)
 
-# il faut retirer les clusters 
-test.shp <- geocodage_adresse.shp[!geocodage_adresse.shp$adresse_id %in% centre_cluster$adresse_id,] 
+# il faut retirer les clusters et preparer le jeux de données
+table_adresse.shp <- geocodage_adresse.shp[!geocodage_adresse.shp$adresse_id %in% centre_cluster$adresse_id,] %>% 
+    select(-c(date_start, date_end, commune, adresse, cp, info_sup, cluster, bigcluster, nb_cluster, nb_bigcluster)) %>% 
+    bind_rows(centre_cluster_clean) %>% 
+    group_by(adresse_id) %>% # c'est pas ultra propre
+    summarize(sujet_id = first(sujet_id),
+              precision = first(precision),
+              source_codage = first(precision))
+    
+    
