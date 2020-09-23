@@ -16,14 +16,14 @@ create table gou.t_sujet (
 \copy gou.t_sujet  from 'sujet.csv' delimiter ',' ;
 
 create table gou.t_adresse (
+                    geometry geometry(POINT, 2154),
                     adresse_id serial primary key,
                     sujet_id char(7) references gou.t_sujet(sujet_id),
-                    adresse_clb smallint,
-                    precision varchar(20),
-                    source_codage varchar(20),
-                    geometry geometry(POINT, 2154)
+                    adresse_clb varchar(20),
+                    precision smallint,
+                    source_codage varchar(20)
                     );
-                    
+
 -- ici j'ai changé le delimiter pour mieux gérer le WKT                    
 -- \copy gou.adresse_staging from 'adresse.csv' delimiter ';' ;
 
@@ -31,11 +31,12 @@ create table gou.t_adresse (
 -- vu que je vais faire un import derrière je sais pas si c'est le plus pertinent
 
 -- cette commande est une version "localhost" penser à changer port, user, adresse ..
--- on est en bash et plus psql
+-- on est en bash et plus psql 
+-- chenager aussi le chemin d'adresse
 shp2pgsql -s 2154 -g geometry -I data/adresse.shp staging.adresse_staging | psql -h localhost -U postgres -p 5432 -d dbgouramic
 
-
+-- on repasse en psql
 insert into gou.t_adresse (adresse_id, sujet_id, adresse_clb, precision, source_codage, geometry)
-select adrss_d, sujet_d, adrss_c, rslt_ty, sorc_lc, geometry
+select adrss_d, sujet_d, adrss_c, precisn, src_cdg, geometry
 from staging.adresse_staging;
 

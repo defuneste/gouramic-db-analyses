@@ -378,12 +378,22 @@ centre_cluster_clean <- centre_cluster %>%
         select(-bigcluster)
 
 # il faut retirer les clusters et preparer le jeux de données
+# c'est un peu lourd en computation pour ce que cela fait ...
 table_adresse.shp <- geocodage_adresse.shp[!geocodage_adresse.shp$adresse_id %in% centre_cluster$adresse_id,] %>% 
     select(-c(date_start, date_end, commune, adresse, cp, info_sup, cluster, bigcluster, nb_cluster, nb_bigcluster)) %>% 
     bind_rows(centre_cluster_clean) %>% 
     group_by(adresse_id) %>% # c'est pas ultra propre
     summarize(sujet_id = first(sujet_id),
               precision = first(precision),
-              source_codage = first(precision))
-    
-    
+              source_codage = first(source_codage)) %>% 
+    mutate(adresse_clb = adresse_id) %>% 
+    mutate(adresse_id = 1:length(adresse_id))  %>% 
+    select(adresse_id, sujet_id, adresse_clb, precision, source_codage)
+
+# il y a des id de sujet avec  des fautes de frappes à corriger
+table_adresse.shp$sujet_id[table_adresse.shp$sujet_id == "08_006_"] <- "08_0006"
+
+st_write(table_adresse.shp,
+         "data/adresse.shp"
+        )
+
