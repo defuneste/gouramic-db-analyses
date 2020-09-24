@@ -433,3 +433,27 @@ geocodage_adresse.shp$date_end[geocodage_adresse.shp$adresse_id == "20_1221_5"] 
 
 geocodage_adresse.shp$date_end[geocodage_adresse.shp$adresse_id == "22_1055_4"] <- max(geocodage_adresse.shp$date_end, na.rm = T)
 
+
+# 3.2 table intermediaire de passage ==================================================
+
+buffer_adresse <- st_buffer(table_adresse.shp, 1)
+st_intersects(geocodage_adresse.shp, buffer_adresse)
+st_intersection(geocodage_adresse.shp, buffer_adresse)
+
+
+geocodage_adresse_temporelle <- geocodage_adresse.shp %>% 
+                                    st_drop_geometry() %>% 
+                                    select(adresse_clb = adresse_id, date_start, date_end) 
+
+table_adresse <- table_adresse.shp %>% 
+                        st_drop_geometry() %>% 
+                        select(adresse_id, adresse_clb)
+
+# une verif
+lapply(list(table_adresse, geocodage_adresse_temporelle), dim)
+
+temp <- left_join(geocodage_adresse_temporelle, table_adresse, by = "adresse_clb")  
+dim(temp)
+
+
+
