@@ -391,9 +391,45 @@ table_adresse.shp <- geocodage_adresse.shp[!geocodage_adresse.shp$adresse_id %in
     select(adresse_id, sujet_id, adresse_clb, precision, source_codage)
 
 # il y a des id de sujet avec  des fautes de frappes à corriger
+# oui j'ai verifier 08_006X
 table_adresse.shp$sujet_id[table_adresse.shp$sujet_id == "08_006_"] <- "08_0006"
+geocodage_adresse.shp$sujet_id[geocodage_adresse.shp$sujet_id == "08_006_"] <- "08_0006"
 
-st_write(table_adresse.shp,
-         "data/adresse.shp"
-        )
+# st_write(table_adresse.shp,
+#          "data/adresse.shp"
+#         )
+# 3 interval de temps ======================================================
+
+
+# 3.1 correction des NA  ================================================
+# on va avoir un pb avec les NA
+summary(geocodage_adresse.shp)
+
+geocodage_adresse.shp[is.na(geocodage_adresse.shp$date_start),]
+geocodage_adresse.shp[is.na(geocodage_adresse.shp$date_end),]
+
+# on va les corriger à la main mais c'est automatisable 
+# on attribue la date de depart à la date de fin precedente
+# c'est potable comme hypotheses mais pas fou si c'est une adresse temporaire
+# pb geocodage_adresse.shp$date_end[geocodage_adresse.shp$adresse_id == "08_0006_2"] ou je vois pas trop quoi faire à part dropper
+# dans le cas ou c'est la dernière residence on attribue le max de date_end
+# geocodage_adresse.shp[geocodage_adresse.shp$sujet_id  %in% geocodage_adresse.shp$sujet_id[is.na(geocodage_adresse.shp$date_end)],] %>% View()
+
+geocodage_adresse.shp$date_end[geocodage_adresse.shp$adresse_id == "01_1095_1"] <- geocodage_adresse.shp$date_start[geocodage_adresse.shp$adresse_id == "01_1095_2"]
+geocodage_adresse.shp$date_end[geocodage_adresse.shp$adresse_id == "01_1095_3"] <- geocodage_adresse.shp$date_start[geocodage_adresse.shp$adresse_id == "01_1095_4"]
+
+geocodage_adresse.shp$date_end[geocodage_adresse.shp$adresse_id == "02_0961_13"] <- max(geocodage_adresse.shp$date_end, na.rm = T)
+
+# ici pas de seconde adresse j'ai pris la troisème
+geocodage_adresse.shp$date_end[geocodage_adresse.shp$adresse_id == "05_0901_1"] <- geocodage_adresse.shp$date_start[geocodage_adresse.shp$adresse_id == "05_0901_3"] 
+
+geocodage_adresse.shp$date_end[geocodage_adresse.shp$adresse_id == "09_1255_4"] <- max(geocodage_adresse.shp$date_end, na.rm = T)
+
+geocodage_adresse.shp$date_end[geocodage_adresse.shp$adresse_id == "16_0757_3"] <- max(geocodage_adresse.shp$date_end, na.rm = T)
+
+geocodage_adresse.shp$date_end[geocodage_adresse.shp$adresse_id == "16_0784_3"] <- max(geocodage_adresse.shp$date_end, na.rm = T)
+
+geocodage_adresse.shp$date_end[geocodage_adresse.shp$adresse_id == "20_1221_5"] <- max(geocodage_adresse.shp$date_end, na.rm = T)
+
+geocodage_adresse.shp$date_end[geocodage_adresse.shp$adresse_id == "22_1055_4"] <- max(geocodage_adresse.shp$date_end, na.rm = T)
 
