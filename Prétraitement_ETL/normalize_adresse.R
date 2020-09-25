@@ -463,5 +463,5 @@ interval_temp <- geocodage_adresse_temporelle %>%
     summarize(count = n()) %>% 
     mutate(interval_id = 1:length(inter))
 
-
-
+table_interval_date <- left_join(geocodage_adresse_temporelle,  interval_temp, by = "inter") %>% 
+    select(interval_id, date_start, date_end)
