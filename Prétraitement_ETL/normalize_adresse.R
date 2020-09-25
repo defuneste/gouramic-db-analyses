@@ -436,24 +436,32 @@ geocodage_adresse.shp$date_end[geocodage_adresse.shp$adresse_id == "22_1055_4"] 
 
 # 3.2 table intermediaire de passage ==================================================
 
-buffer_adresse <- st_buffer(table_adresse.shp, 1)
-st_intersects(geocodage_adresse.shp, buffer_adresse)
-st_intersection(geocodage_adresse.shp, buffer_adresse)
-
-
-geocodage_adresse_temporelle <- geocodage_adresse.shp %>% 
-                                    st_drop_geometry() %>% 
-                                    select(adresse_clb = adresse_id, date_start, date_end) 
-
 table_adresse <- table_adresse.shp %>% 
-                        st_drop_geometry() %>% 
-                        select(adresse_id, adresse_clb)
+    st_drop_geometry() %>% 
+    select(adresse_id, adresse_clb)
+
+buffer_adresse <- st_buffer(table_adresse.shp, 1) %>% 
+    select(adresse_id)
+
+geocodage_adresse_temporelle <- st_intersection(buffer_adresse, geocodage_adresse.shp) %>% 
+                                    st_drop_geometry() %>% 
+                                    select(adresse_id, adresse_clb = adresse_id.1, date_start, date_end) %>% 
+                                    arrange(adresse_id)
 
 # une verif
 lapply(list(table_adresse, geocodage_adresse_temporelle), dim)
 
-temp <- left_join(geocodage_adresse_temporelle, table_adresse, by = "adresse_clb")  
-dim(temp)
+
+# 3.3 table interval ==================================================================
+
+geocodage_adresse_temporelle$inter <- paste(geocodage_adresse_temporelle$date_start, geocodage_adresse_temporelle$date_end)
+
+# il y a des intervals vide .....
+
+interval_temp <- geocodage_adresse_temporelle %>% 
+    group_by(inter) %>% 
+    summarize(count = n()) %>% 
+    mutate(interval_id = 1:length(inter))
 
 
 
