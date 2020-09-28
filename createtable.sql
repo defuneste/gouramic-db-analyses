@@ -40,3 +40,24 @@ insert into gou.t_adresse (adresse_id, sujet_id, adresse_clb, precision, source_
 select adrss_d, sujet_d, adrss_c, precisn, src_cdg, geometry
 from staging.adresse_staging;
 
+
+
+-- la table des interval de temps
+create table gou.t_interval_date(
+                    interval_id smallint primary key,
+                    date_start date,
+                    date_end date
+                    );
+                    
+ \cd /home/defuneste/Documents/recherche/gouramic/gouramic-db-analyses/data
+\! pwd
+ 
+\copy gou.t_interval_date  from 'table_interval_date.csv' delimiter ',' ;
+                   
+-- la table de passage, la pk est la interval_id + adresse_id
+create table gou.p_t_adresse_interval (
+                    adresse_id smallint references gou.t_adresse(adresse_id),
+                    interval_id smallint references gou.t_interval_date(interval_id)
+                    );
+
+\copy gou.p_t_adresse_interval  from 'p_table_adresse_interval.csv' delimiter ',' ;

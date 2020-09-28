@@ -446,6 +446,7 @@ buffer_adresse <- st_buffer(table_adresse.shp, 1) %>%
 geocodage_adresse_temporelle <- st_intersection(buffer_adresse, geocodage_adresse.shp) %>% 
                                     st_drop_geometry() %>% 
                                     select(adresse_id, adresse_clb = adresse_id.1, date_start, date_end) %>% 
+                                    filter(!is.na(date_start)) %>% # ici je vire le NA de 08_0006
                                     arrange(adresse_id)
 
 # une verif
@@ -456,12 +457,38 @@ lapply(list(table_adresse, geocodage_adresse_temporelle), dim)
 
 geocodage_adresse_temporelle$inter <- paste(geocodage_adresse_temporelle$date_start, geocodage_adresse_temporelle$date_end)
 
-# il y a des intervals vide .....
+# il y a des intervals vides .....
 
 interval_temp <- geocodage_adresse_temporelle %>% 
+    filter(!is.na(date_start)) %>% 
     group_by(inter) %>% 
     summarize(count = n()) %>% 
-    mutate(interval_id = 1:length(inter))
+    mutate(interval_id = 1:length(inter)) 
 
 table_interval_date <- left_join(geocodage_adresse_temporelle,  interval_temp, by = "inter") %>% 
-    select(interval_id, date_start, date_end)
+    select(interval_id, adresse_id, date_start, date_end)
+
+# table de passage
+p_table_adresse_interval <- table_interval_date %>% 
+    select(interval_id, adresse_id)
+
+write.table(p_table_adresse_interval,
+            "data/p_table_adresse_interval.csv",
+            sep = ",",
+            quote = FALSE,
+            row.names = FALSE,
+            col.names=FALSE)
+
+#table d'interval 
+table_interval_date <- left_join(geocodage_adresse_temporelle,  interval_temp, by = "inter") %>% 
+    select(interval_id, date_start, date_end) %>% 
+    group_by(interval_id) %>% 
+    summarize(date_start = first(date_start),
+              date_end = first(date_start))
+
+write.table(table_interval_date,
+            "data/table_interval_date.csv",
+            sep = ",",
+            quote = FALSE,
+            row.names = FALSE,
+            col.names=FALSE)
