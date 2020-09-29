@@ -470,7 +470,8 @@ table_interval_date <- left_join(geocodage_adresse_temporelle,  interval_temp, b
 
 # table de passage
 p_table_adresse_interval <- table_interval_date %>% 
-    select(interval_id, adresse_id)
+    select(interval_id, adresse_id) %>% 
+    arrange(desc(interval_id))
 
 write.table(p_table_adresse_interval,
             "data/p_table_adresse_interval.csv",
