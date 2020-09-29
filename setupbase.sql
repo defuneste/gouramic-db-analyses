@@ -18,6 +18,8 @@ grant usage on schema postgis to public;
 create schema if not exists gou;
 -- un schema pour les données en transit
 create schema if not exists staging;
+-- pas certain que cela soit utile
+SET search_path TO gou, public;
 
 alter database dbgouramic set search_path=public, postgis, contrib;
 alter database dbgouramic set postgis.gdal_enabled_drivers = 'ENABLE_ALL';
