@@ -4,6 +4,9 @@ pkgs <-  c("dplyr","stringr", "rgdal", "raster", "lubridate", "tidyr", "ggplot2"
 inst <- lapply(pkgs, library, character.only = TRUE)
 
 # les données
+# il peut y avoir plusieur plusieurs photos aerienne pour un cas
+# le second il y a eu plusieurs interpretation et donc c'est le dernier resultat qui est bon 
+# dans le second cas on doit avoir des noms de photos differents
 
 list.files("data", recursive = TRUE, pattern = "res.png$")
 
@@ -15,20 +18,36 @@ list.files("data", recursive = TRUE, pattern = "2.res.png$")
 
 list.files("data", recursive = TRUE, pattern = "3.res.png$")
 
+list.files("data", recursive = TRUE, pattern = "4.res.png$")
+
 head(list.files("data", recursive = TRUE, pattern = "res.png$"), 10)
 
 
 # liste des png
 # on fait une liste des fichiers qui ont besoin d'un world file,
 # le world file doit avoir le meme nom mais terminer par w
-list_png <- list.files("data", recursive = TRUE, pattern = "res.png$", full.names = TRUE)
+list_png <- list.files("data", recursive = TRUE, pattern = "res.png$")
 str_replace(list_png, pattern = "png$", "pgw")
 
 # une liste/vector des fichiers à copier
-list_a_copier <- list.files("data", pattern = "w$", full.names = TRUE)
+fichier_world <- list.files("data",  recursive = TRUE, pattern = "wx$")
 
-# on les copies par le nom remplacer 
-file.copy(list_a_copier,  str_replace(list_png, pattern = "png$", "pgw"))
+list.dirs("data", recursive = T)[!str_detect(list.dirs("data", recursive = T), pattern = "gouResult")]
+
+setdiff( substr(list.files("data", recursive = TRUE, pattern = "0.res.png$"), 1,15) ,
+         substr(list.files("data",  recursive = TRUE, pattern = "wx$"), 1,15))
+
+setdiff(substr(fichier_world, nchar("XX_XXXX/X/XXXX/") + 1, nchar(fichier_world) -5),
+substr(list_png, nchar("XX_XXXX/X/XXXX/gouResult/") + 1 , nchar(list_png) -14))
+
+
+
+# file.remove(list_a_copier)
+# file.remove(list.files("data",  recursive = TRUE, pattern = "pgwzz$", full.names = TRUE))
+
+
+# on les copie par le nom remplacer 
+file.copy(from = list_a_copier,  to = str_replace(list_png, pattern = "png$", "pgwzz"))
 
 
 # 1-  un tableau de synthése des photos =======================

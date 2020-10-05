@@ -75,7 +75,7 @@ geocodage_clbv2_clean.shp  <- geocodage_clbv2.shp   %>%
     st_transform(2154) %>% 
     st_buffer(2000) %>% 
     st_transform(4326) %>% 
-    select(ID_CARTO, date_debut, date_fin, interval,  x , y, geometry) %>% 
+    dplyr::select(ID_CARTO, date_debut, date_fin, interval,  x , y, geometry) %>% 
     arrange(ID_CARTO, date_debut)
 
 
