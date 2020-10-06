@@ -2,6 +2,7 @@
 
 pkgs <-  c("dplyr","stringr", "rgdal", "raster", "lubridate", "tidyr", "ggplot2")
 inst <- lapply(pkgs, library, character.only = TRUE)
+# attention on a pas mal de nom de fonction pbatique penser à les appeler directement
 
 # les données
 # il peut y avoir plusieur plusieurs photos aerienne pour un cas
@@ -27,36 +28,31 @@ head(list.files("data", recursive = TRUE, pattern = "res.png$"), 10)
 # on fait une liste des fichiers qui ont besoin d'un world file,
 # le world file doit avoir le meme nom mais terminer par w
 list_png <- list.files("data", recursive = TRUE, pattern = "res.png$")
-str_replace(list_png, pattern = "png$", "pgw")
+
 
 # une liste/vector des fichiers à copier
 fichier_world <- list.files("data",  recursive = TRUE, pattern = "wx$")
 
-list.dirs("data", recursive = T)[!str_detect(list.dirs("data", recursive = T), pattern = "gouResult")]
+#list.dirs("data", recursive = T)[!str_detect(list.dirs("data", recursive = T), pattern = "gouResult")]
 
+# classifs sans fichier world 
 setdiff( substr(list.files("data", recursive = TRUE, pattern = "0.res.png$"), 1,15) ,
          substr(list.files("data",  recursive = TRUE, pattern = "wx$"), 1,15))
 
-setdiff(substr(fichier_world, nchar("XX_XXXX/X/XXXX/") + 1, nchar(fichier_world) -5),
+# image aerienne sans classifs 
+classif_manquante <- setdiff(substr(fichier_world, nchar("XX_XXXX/X/XXXX/") + 1, nchar(fichier_world) -5),
 substr(list_png, nchar("XX_XXXX/X/XXXX/gouResult/") + 1 , nchar(list_png) -14))
 
 
-
-# file.remove(list_a_copier)
-# file.remove(list.files("data",  recursive = TRUE, pattern = "pgwzz$", full.names = TRUE))
-
-
-# on les copie par le nom remplacer 
-file.copy(from = list_a_copier,  to = str_replace(list_png, pattern = "png$", "pgwzz"))
-
+emplacement_manquant <- function(x_classif_manquante) {substr(list.files("data",  recursive = TRUE, pattern = x_classif_manquante), 1, 15)}
+lapply(classif_manquante, emplacement_manquant)
 
 # 1-  un tableau de synthése des photos =======================
 
-# liste des png
-list_png <- list.files("data", recursive = TRUE, pattern = "res.png$")
-
 # on extrait les sujet
 sujet <- substr(list_png, 1,7)
+fichier_world <- list.files("data",  recursive = TRUE, pattern = "wx$")
+list_png <- list.files("data", recursive = TRUE, pattern = "res.png$")
 
 # on va exraire les adresses, deux temps, (i) separation par "/" puis extraction du second
 on_separe <- sapply(list_png, function(x){ strsplit(x, "/")})
@@ -64,6 +60,9 @@ adresse <- sapply(on_separe, function(x) {as.numeric(x[2])})
 
 # un df 
 exemple.dat <- data.frame(sujet, adresse)
+exemple.dat$path <-  paste0("data/", row.names(exemple.dat))
+row.names(exemple.dat) <- c()
+
 rm(on_separe, adresse, sujet)
 
 # on extrait les dates des photos aeriennes 
@@ -76,6 +75,19 @@ exemple.dat$version <- as.numeric(str_extract(list_png, pattern = "[:digit:](?=.
 
 # cas ou on a plusieurs photos
 exemple.dat$id_photo <- str_extract(list_png, pattern = "(?<=C).*(?=.jp)")
+
+# on a pas le cas là on ne garde que la dernière version de la classif
+exemple.dat <- exemple.dat %>% 
+        group_by(.dots = c("id_photo","sujet","adresse")) %>% 
+        filter(version == max(version))
+
+exemple.dat$path
+
+# on les copie par le nom remplacer pris dans le tableau après avoir filtrer les version
+file.copy(from = paste0("data/",fichier_world),  to = str_replace(exemple.dat$path, pattern = "png$", "j2wx"))
+
+# file.remove(list_a_copier)
+file.remove(list.files("data",  recursive = TRUE, pattern = "zzzzzzzzz$", full.names = TRUE))
 
 # ici on ne va garder que la dernière bonne version
 exemple.dat <- exemple.dat %>% 
