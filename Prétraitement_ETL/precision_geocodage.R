@@ -111,7 +111,7 @@ geocodage_clbv2_clean_dupli.shp <-  geocodage_clbv2_clean.shp %>%
                                         st_set_crs(st_crs("EPSG:4326")) %>% 
                                         sfc_as_cols() %>% 
                                         st_transform(2154) %>% 
-                                        st_buffer(2000) %>% 
+                                        st_buffer(1500) %>% 
                                         st_transform(4326) %>% 
                                         select(ID_CARTO, date_y = data, x, y, geometry)
 

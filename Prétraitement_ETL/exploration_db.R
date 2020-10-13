@@ -20,18 +20,30 @@ con <- dbConnect(
 
 dbListTables(con)
 
-dbExistsTable(con, "t_sujet") 
+rm(pwd, db, adresse, port)
+
+sujet.dat <- st_read(con, query="select * from gou.t_sujet;")
+
+adresse.shp <- st_read(con, query="select * from gou.t_adresse;")
+
+p_t_adresse_interval.dat <- st_read(con, query="select * from gou.p_t_adresse_interval;")
+
+interval_date <- st_read(con, query="select * from gou.t_interval_date;")
+
+adresse_sujet.shp <- dplyr::left_join(adresse.shp, sujet.dat, by = c("sujet_id"))
+
+temporal.dat <- dplyr::left_join(p_t_adresse_interval.dat, interval_date, by = c("interval_id"))
+    
+adresse_sujet_temporal.shp <- dplyr::left_join(adresse_sujet.shp, temporal.dat, by = c("adresse_id")) %>% 
+                                dplyr::select(-interval_id)
+# on peut se deconnecter
+dbDisconnect(con)
 
 
+
+
+#################### test 
 list_table <- c("t_sujet", "t_adresse", "p_t_adresse_interval", "t_interval_date")
 
 my_dm <- dm_from_src(con, list_table = c("gou.t_sujet"), schema = "gou", learn_keys = F)
 my_dm
-
-st_read(con, query = "select * from gou.t_sujet limit 3;")
-
-tbl(con, in_schema("gou", "t_sujet"))
-
-tbl(con, from = "t_adresse")
-
-dbDisconnect(con)
