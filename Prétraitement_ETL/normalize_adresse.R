@@ -380,7 +380,7 @@ centre_cluster_clean <- centre_cluster %>%
 # il faut retirer les clusters et preparer le jeux de données
 # c'est un peu lourd en computation pour ce que cela fait ...
 table_adresse.shp <- geocodage_adresse.shp[!geocodage_adresse.shp$adresse_id %in% centre_cluster$adresse_id,] %>% 
-    select(-c(date_start, date_end, commune, adresse, cp, info_sup, cluster, bigcluster, nb_cluster, nb_bigcluster)) %>% 
+    select(-c(date_start, date_end, commune, adresse, cp, info_sup,  nb_cluster, nb_bigcluster)) %>% 
     bind_rows(centre_cluster_clean) %>% 
     group_by(adresse_id) %>% # c'est pas ultra propre
     summarize(sujet_id = first(sujet_id),
@@ -485,7 +485,7 @@ table_interval_date <- left_join(geocodage_adresse_temporelle,  interval_temp, b
     select(interval_id, date_start, date_end) %>% 
     group_by(interval_id) %>% 
     summarize(date_start = first(date_start),
-              date_end = first(date_start))
+              date_end = first(date_end))
 
 write.table(table_interval_date,
             "data/table_interval_date.csv",

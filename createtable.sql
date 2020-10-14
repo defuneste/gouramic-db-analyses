@@ -41,7 +41,6 @@ select adrss_d, sujet_d, adrss_c, precisn, src_cdg, geometry
 from staging.adresse_staging;
 
 
-
 -- la table des interval de temps
 create table gou.t_interval_date(
                     interval_id smallint primary key,
