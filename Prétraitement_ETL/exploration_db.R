@@ -90,7 +90,7 @@ temp_dupli <-  temp %>%
     dplyr::select(adresse_id, adresse_clb, sujet_id, date_y = data, x, y, geometry)
 
 
-dir.create("data/csv")
+dir.create("data/csv2")
 
 outlist <- list() # initialisation d'un liste
 longueur <- length(unique(temp_dupli$sujet_id)) # le nombre de fichier souhaité
@@ -100,11 +100,12 @@ for(i in 1:longueur) {
     outlist[[i]] <- temp_dupli %>%
         filter(sujet_id == unique(temp_dupli$sujet_id)[i]) 
     # on écrit des tas de fichiers 
-    st_write(outlist[[i]], dsn = paste0("data/csv/", unique(temp_dupli$sujet_id)[i], ".csv"),
+    st_write(outlist[[i]], dsn = paste0("data/csv2/", unique(temp_dupli$sujet_id)[i], ".csv"),
                 sep = ";",
                 quote = FALSE,
                 row.names = FALSE,
-                col.names=TRUE)
+                col.names=TRUE,
+                layer_options = "GEOMETRY=AS_WKT")
 }
 
 # on peut se deconnecter
