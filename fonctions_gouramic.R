@@ -7,10 +7,9 @@
 
 # fonction rapide d'explo/verif des données
 # a besoin de allsujet.dat et prend un "un_Id_carto"
-affiche_un_sujet <- function(un_Id_carto) {
-    allsujet.dat %>% 
-        dplyr::filter(ID_SECONDAIRE == un_Id_carto) %>% 
-        View()
+affiche_un_sujet <- function(sujet_id) {
+    adresse_commune.shp[adresse_commune.shp$sujet_id == sujet_id,]  
+
 }
 
 
