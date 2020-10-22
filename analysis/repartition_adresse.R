@@ -50,37 +50,63 @@ sujet.dat <- adresse_commune.shp %>%
                           date_max = max(date_end),
                           nbr_adresse = n())
 
-bill <- affiche_un_sujet("15_0738")
+bill <- affiche_un_sujet("03_0581")
 
 
 ## fonction pour ploter les sujets avec leurs adresses groupées (ie jointive)
 # penser à renomer les variables intermediaires 
 
 plot_group_adresse <- function(liste_adresse){
-jim <- liste_adresse 
-jim$adresse_clb <- with(jim, reorder(adresse_clb, date_start)) 
-jim <- st_drop_geometry(jim)
-jim$adresse_jointives <- 1:nrow(jim)
+    jim <- liste_adresse 
+    jim$adresse_clb <- with(jim, reorder(adresse_clb, date_start)) 
+    jim <- st_drop_geometry(jim)
+    jim$adresse_jointives <- 1:nrow(jim)
 
-merge.indices <- lapply(2:nrow(jim), function(x) {
-    indices <- which(findInterval(jim$date_end[1:(x-1)], jim$date_start[x]) == 1 )
-    if (length(indices) > 0) indices <- c(indices, x) 
-    indices})
+    merge.indices <- lapply(2:nrow(jim), function(x) {
+         indices <- which(findInterval(jim$date_end[1:(x-1)], jim$date_start[x]) == 1 )
+         if (length(indices) > 0) indices <- c(indices, x) 
+         indices})
 
-for (i in 1:length(merge.indices)) {
-    if (length(merge.indices[[i]]) > 0) {
-        jim$adresse_jointives[merge.indices[[i]]] <- min(jim$adresse_jointives[merge.indices[[i]]])
+    for (i in 1:length(merge.indices)) {
+        if (length(merge.indices[[i]]) > 0) {
+            jim$adresse_jointives[merge.indices[[i]]] <- min(jim$adresse_jointives[merge.indices[[i]]])
+        }
     }
-}
 
-ggplot(jim, aes(y = adresse_clb, x = date_start)) +
-    geom_segment(aes(x = date_start, y = adresse_clb, xend = date_end, yend = adresse_clb, col = as.factor(adresse_jointives), lwd = 1), data = jim) +
-    theme_bw()
+    ggplot(jim, aes(y = adresse_clb, x = date_start)) +
+        geom_segment(aes(x = date_start, y = adresse_clb, xend = date_end, yend = adresse_clb, col = as.factor(adresse_jointives), lwd = 1), data = jim) +
+        theme_bw()
 
-}
+    }
 
+
+adresse_commune.dat <- st_drop_geometry(adresse_commune.shp) %>% 
+    arrange(sujet_id, date_start) %>% 
+    group_by(sujet_id) %>% 
+    mutate(adresse_jointives = 1:n())
+
+i = 1
+
+for(i in 1:length(sujet.dat$sujet_id)) {
+            jim <- adresse_commune.dat[adresse_commune.dat$sujet_id ==sujet.dat$sujet_id[i],]
+            merge.indices <- lapply(2:nrow(jim), function(x) {
+                indices <- which(findInterval(jim$date_end[1:(x-1)], jim$date_start[x]) == 1 )
+                if (length(indices) > 0) indices <- c(indices, x) 
+                indices})
+    
+            for (j in 1:length(merge.indices)) {
+                if (length(merge.indices[[j]]) > 0) {
+adresse_commune.dat[adresse_commune.dat$sujet_id ==sujet.dat$sujet_id[i],]$adresse_jointives[merge.indices[[j]]] <- min(adresse_commune.dat[adresse_commune.dat$sujet_id ==sujet.dat$sujet_id[i],]$adresse_jointives[merge.indices[[j]]])
+
+        }
+    }}
+                        
+bill <- affiche_un_sujet("01_0090")
 plot_group_adresse(bill)
 
+
+# calcul du temps manquants par sujet
+# on va d'abord obtenir adresse jointives
 
 
 as.duration(interval(first(jim$date_naissance), max(bob$end))) -
