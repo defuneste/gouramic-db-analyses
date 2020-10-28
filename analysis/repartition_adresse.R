@@ -48,10 +48,10 @@ sujet.dat <- adresse_commune.shp %>%
                 summarize(date_naissance = first(date_naissance),
                           date_min = min(date_start), 
                           date_max = max(date_end),
-                          nbr_adresse = n())
+                          nbr_adresse = n()) %>% 
+                mutate(intervalle_tps = as.numeric(as.duration(interval(date_min, date_max)) , "days"))
 
-bill <- affiche_un_sujet("03_0581")
-
+# bill <- affiche_un_sujet("03_0581")
 
 ## fonction pour ploter les sujets avec leurs adresses groupées (ie jointive)
 # penser à renomer les variables intermediaires 
@@ -79,13 +79,12 @@ plot_group_adresse <- function(liste_adresse){
 
     }
 
+## attention plot_group_adresse ne marche plus une fois sa generalisation mise en place
 
 adresse_commune.dat <- st_drop_geometry(adresse_commune.shp) %>% 
     arrange(sujet_id, date_start) %>% 
     group_by(sujet_id) %>% 
     mutate(adresse_jointives = 1:n())
-
-i = 1
 
 for(i in 1:length(sujet.dat$sujet_id)) {
             jim <- adresse_commune.dat[adresse_commune.dat$sujet_id ==sujet.dat$sujet_id[i],]
@@ -100,14 +99,33 @@ adresse_commune.dat[adresse_commune.dat$sujet_id ==sujet.dat$sujet_id[i],]$adres
 
         }
     }}
-                        
-bill <- affiche_un_sujet("01_0090")
-plot_group_adresse(bill)
 
+# il faut calculer la durée de chaque groupe d'adresses jointives (les adresses pouvant se superposer)
+
+temps_habite.dat <- adresse_commune.dat %>% 
+    group_by(sujet_id, adresse_jointives) %>% 
+    summarise(date_min = min(date_start),
+              date_max = max(date_end)) %>% 
+    mutate(inter = as.numeric(as.duration(interval(date_min, date_max)) , "days")) %>% 
+    select(sujet_id, inter) %>% 
+    group_by(sujet_id) %>% 
+    summarise(temps_habite = sum(inter))
+
+
+sujet.dat <- sujet.dat %>% 
+             left_join(temps_habite.dat, by = "sujet_id")
+
+# a noter que je ne garde pas la date de la naisance sinon je peux faire des trou negatif dans le cas ou la date
+# de naissance est inferieur à 
+sujet.dat$dif <- sujet.dat$intervalle_tps - sujet.dat$temps_habite
+
+affiche_un_sujet("01_1240")
+
+ggplot(data = sujet.dat, aes(x = dif)) +
+    geom_histogram()
 
 # calcul du temps manquants par sujet
 # on va d'abord obtenir adresse jointives
-
 
 as.duration(interval(first(jim$date_naissance), max(bob$end))) -
 as.duration(interval(first(test$date_naissance), max(test$date_end)))
@@ -138,5 +156,3 @@ adresse_commune.shp %>%
     geom_hline(yintercept = as.numeric(apply(prop.table(tbl_cont, 2) , 1, mean)["URBAIN"])) +
     theme_bw()
 
-
-dev.off()
