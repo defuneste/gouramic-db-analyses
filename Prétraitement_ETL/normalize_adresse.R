@@ -90,7 +90,7 @@ sujet.dat <- allsujet_SansNA.dat %>%
 geocodage_evs_oli.shp <- sf::st_read("data/geocode_mains_Na.geojson") %>% 
     dplyr::select(adresse_id = Id_cart,
                   date_start = Date_start,
-                  date_end = Date_end,
+                  #date_end = Date_end,
                   commune = Commune,
                   adresse = Adresse,
                   cp = Code_postal,
@@ -102,16 +102,25 @@ geocodage_evs_oli.shp <- sf::st_read("data/geocode_mains_Na.geojson") %>%
 
 geocodage_evs_oli.shp$precision <- as.numeric(geocodage_evs_oli.shp$precision) 
 
+# correction de l'erreur de date_end
+correction <- NA_dist.dat[NA_dist.dat$Id_cart %in% geocodage_evs_oli.shp$adresse_id,c("Id_cart", "Date_end")]
+correction <- st_drop_geometry(correction)
+
+geocodage_evs_oli.shp <- left_join(geocodage_evs_oli.shp, correction, by=c("adresse_id"="Id_cart")) %>% 
+    select("adresse_id", "date_start", date_end = "Date_end", "commune" , "adresse" , "cp","info_sup" ,"precision" ,"sujet_id", "source_codage","geometry")
+
+
 summary(geocodage_evs_oli.shp)
 
 # on exporte et on va verifier à la main
 
 ### 1.2 lecture geocodge olivier + matthieu ==========================
+# ici il y avait une erreur sur date fin à corriger via Na_dist.dat de precision_geocodage.R
 
 RM2.shp <- sf::st_read("data/REgeocodage/RM2_OL.shp") %>% 
                 dplyr::select(adresse_id = Id_cart,
                               date_start = Date_start,
-                              date_end = Date_end,
+                              #date_end = Date_end,
                               commune = Commune,
                               adresse = Adresse,
                               cp = Postal,
@@ -119,6 +128,13 @@ RM2.shp <- sf::st_read("data/REgeocodage/RM2_OL.shp") %>%
                               precision = New_Loc) %>% 
                 dplyr:: mutate(sujet_id = substr(adresse_id, 1,7),
                     source_codage = "Main")
+
+# correction de l'erreur de date_end
+correction <- NA_dist.dat[NA_dist.dat$Id_cart %in% RM2.shp$adresse_id,c("Id_cart", "Date_end")]
+correction <- st_drop_geometry(correction)
+
+RM2.shp <- left_join(RM2.shp, correction, by=c("adresse_id"="Id_cart")) %>% 
+                select("adresse_id", "date_start", date_end = "Date_end", "commune" , "adresse" , "cp","info_sup" ,"precision" ,"sujet_id", "source_codage","geometry")
 
 RM2.shp$precision <- as.numeric(RM2.shp$precision)
 
@@ -141,7 +157,7 @@ geocodage_clb_oli.shp <- sf::st_read("data/REgeocodage/geocodage_clb_oli.shp" ) 
 geocodage_clb_oli.shp$precision <- as.numeric(geocodage_clb_oli.shp$precision)
 
 # un pb avec une adresse qui doit rester inconnue
-geocodage_clb_oli.shp$geometry[geocodage_clb_oli.shp$adresse_id == "20_0755_2"] <- c(NaN, NaN)
+# geocodage_clb_oli.shp$geometry[geocodage_clb_oli.shp$adresse_id == "20_0755_2"] <- c(NaN, NaN)
 geocodage_clb_oli.shp$precision[geocodage_clb_oli.shp$adresse_id == "20_0755_2"] <- NA
 
 summary(geocodage_clb_oli.shp) 
@@ -165,12 +181,10 @@ on_ne_fera_pas_mieux_add.shp <- geocodage_clb.shp[geocodage_clb.shp$ID_CARTO %in
                                       source_codage = "ESRI") %>% 
                         dplyr::select(-Loc_name)
 
-
 on_ne_fera_pas_mieux_add.shp$precision <- as.numeric(on_ne_fera_pas_mieux_add.shp$precision)
 
 summary(on_ne_fera_pas_mieux_add.shp) 
                      
-
 rm(on_ne_fera_pas_mieux.shp)
 
 ### 1.4 on regroupe le tout 
@@ -208,6 +222,8 @@ geocodage_clb_tot.shp <- geocodage_clb.shp %>%
                             dplyr::select(-Loc_name)
 
 geocodage_clb_tot.shp$precision <- as.numeric(geocodage_clb_tot.shp$precision)
+
+summary(geocodage_clb_tot.shp)
 
 rm(geocodage_clb.shp)
 
@@ -447,6 +463,7 @@ geocodage_adresse_temporelle <- st_intersection(buffer_adresse, geocodage_adress
                                     st_drop_geometry() %>% 
                                     select(adresse_id, adresse_clb = adresse_id.1, date_start, date_end) %>% 
                                     filter(!is.na(date_start)) %>% # ici je vire le NA de 08_0006
+                                    filter(!is.na(date_end)) %>%  # ici 12_0748_1
                                     arrange(adresse_id)
 
 # une verif

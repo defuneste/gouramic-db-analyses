@@ -20,7 +20,7 @@ geocodage_evs.shp <- sf::st_read("data/geocodev2.geojson", stringsAsFactors = FA
 #correction formatage
 geocodage_evs.shp$Date_birth <- as.Date(geocodage_evs.shp$Date_birth, origin = "1899-12-30")
 geocodage_evs.shp$Date_start <- as.Date(geocodage_evs.shp$Date_start, origin = "1899-12-30")
-geocodage_evs.shp$Date_end <- as.Date(geocodage_evs.shp$Date_start, origin = "1899-12-30")
+geocodage_evs.shp$Date_end <- as.Date(geocodage_evs.shp$Date_end, origin = "1899-12-30")
 
 ## 1- Stats descriptives rapides =========================
 # un rapide boxplot

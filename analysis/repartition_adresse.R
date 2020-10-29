@@ -100,6 +100,9 @@ adresse_commune.dat[adresse_commune.dat$sujet_id ==sujet.dat$sujet_id[i],]$adres
         }
     }}
 
+
+
+
 # il faut calculer la durée de chaque groupe d'adresses jointives (les adresses pouvant se superposer)
 
 temps_habite.dat <- adresse_commune.dat %>% 
@@ -119,18 +122,21 @@ sujet.dat <- sujet.dat %>%
 # de naissance est inferieur à 
 sujet.dat$dif <- sujet.dat$intervalle_tps - sujet.dat$temps_habite
 
-affiche_un_sujet("01_1240")
+sujet.dat %>% 
+    filter(dif == 0) 
 
-ggplot(data = sujet.dat, aes(x = dif)) +
-    geom_histogram()
+sujet.dat %>% 
+    filter(dif != 0) %>% 
+ggplot( aes(x = dif)) +
+    geom_histogram(binwidth = 180, col = "white") + 
+    xlab("Nbr de jours, Pas de 180 jours") + 
+    ylab("nbr") +
+    labs(title = "Répartition des écarts entre les jours avec une résidence et ceux sans",
+        subtitle = "682 sujets sans écart") +
+    theme_bw() 
 
-# calcul du temps manquants par sujet
-# on va d'abord obtenir adresse jointives
-
-as.duration(interval(first(jim$date_naissance), max(bob$end))) -
-as.duration(interval(first(test$date_naissance), max(test$date_end)))
-
-interval_total <- lubridate::interval(min(test$date_start), max(test$date_end))
+plot_group_adresse(affiche_un_sujet("02_0117"))
+# ici vu un petit pb sur le cas de meme adresse
 
 
 ##.###################################################################################33
