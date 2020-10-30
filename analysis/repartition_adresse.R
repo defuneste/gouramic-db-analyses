@@ -71,6 +71,8 @@ adresse_commune.dat[adresse_commune.dat$sujet_id ==sujet.dat$sujet_id[i],]$adres
         }
     }}
 
+rm(i,j, merge.indices, jim)
+
 # il faut calculer la durée de chaque groupe d'adresses jointives (les adresses pouvant se superposer)
 
 temps_habite.dat <- adresse_commune.dat %>% 
@@ -85,6 +87,8 @@ temps_habite.dat <- adresse_commune.dat %>%
 
 sujet.dat <- sujet.dat %>% 
              left_join(temps_habite.dat, by = "sujet_id")
+
+rm(temps_habite.dat)
 
 # a noter que je ne garde pas la date de la naisance sinon je peux faire des trou negatif dans le cas ou la date
 # de naissance est inferieur à 
@@ -115,15 +119,9 @@ adresse_commune.dat[adresse_commune.dat$sujet_id == "20_0493",] %>%
 ## III. répartition spatiale / type d'espace ====
 ##.#################################################################################33
 
-# on reprend le shape des communes avec l'info rural-urbain-peri
-communes.shp <- st_read("data/commune.shp")
-
-str(communes.shp)
-
-# rajout du type de commune par adresse !!! attention c'est le type de commune en 2019
-adresse_commune.shp <- st_join(st_transform(adresse_sujet_temporal.shp, 2154), st_transform(communes.shp[,c("TYPE_CO", "insee")], 2154))
-
-rm(communes.shp)
+#autres niveaux administratifs 
+dpt.shp <- st_read("data/fonds/dpt_simp.shp") %>% st_transform(2154)
+region.shp <- st_read("data/fonds/regions_simp.shp")  %>% st_transform(2154)
 
 tbl_cont <- table(adresse_commune.shp$TYPE_CO, adresse_commune.shp$precision)
 
@@ -134,3 +132,7 @@ adresse_commune.shp %>%
     geom_hline(yintercept = as.numeric(apply(prop.table(tbl_cont, 2) , 1, mean)["URBAIN"])) +
     theme_bw()
 
+
+dpt.shp$nbr <- lengths(st_intersects(dpt.shp, adresse_commune.shp ))
+plot(dpt.shp["nbr"])
+hist(dpt.shp$nbr, breaks = 10)
