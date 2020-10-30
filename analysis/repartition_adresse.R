@@ -30,7 +30,7 @@ adresse_commune.shp$intervalle_tps <- lubridate::interval(adresse_commune.shp$da
 mean(adresse_commune.shp$intervalle_tps, na.rm = T) 
 median(adresse_commune.shp$intervalle_tps, na.rm = T)
 
- # 602 interval de temps nul 
+ # 23 intervals de temps nul 
 length(adresse_commune.shp$intervalle_tps[adresse_commune.shp$intervalle_tps == 0])
  
 adresse_commune.shp %>% 
@@ -51,35 +51,6 @@ sujet.dat <- adresse_commune.shp %>%
                           nbr_adresse = n()) %>% 
                 mutate(intervalle_tps = as.numeric(as.duration(interval(date_min, date_max)) , "days"))
 
-# bill <- affiche_un_sujet("03_0581")
-
-## fonction pour ploter les sujets avec leurs adresses groupées (ie jointive)
-# penser à renomer les variables intermediaires 
-
-plot_group_adresse <- function(liste_adresse){
-    jim <- liste_adresse 
-    jim$adresse_clb <- with(jim, reorder(adresse_clb, date_start)) 
-    jim <- st_drop_geometry(jim)
-    jim$adresse_jointives <- 1:nrow(jim)
-
-    merge.indices <- lapply(2:nrow(jim), function(x) {
-         indices <- which(findInterval(jim$date_end[1:(x-1)], jim$date_start[x]) == 1 )
-         if (length(indices) > 0) indices <- c(indices, x) 
-         indices})
-
-    for (i in 1:length(merge.indices)) {
-        if (length(merge.indices[[i]]) > 0) {
-            jim$adresse_jointives[merge.indices[[i]]] <- min(jim$adresse_jointives[merge.indices[[i]]])
-        }
-    }
-
-    ggplot(jim, aes(y = adresse_clb, x = date_start)) +
-        geom_segment(aes(x = date_start, y = adresse_clb, xend = date_end, yend = adresse_clb, col = as.factor(adresse_jointives), lwd = 1), data = jim) +
-        theme_bw()
-
-    }
-
-## attention plot_group_adresse ne marche plus une fois sa generalisation mise en place
 
 adresse_commune.dat <- st_drop_geometry(adresse_commune.shp) %>% 
     arrange(sujet_id, date_start) %>% 
@@ -99,9 +70,6 @@ adresse_commune.dat[adresse_commune.dat$sujet_id ==sujet.dat$sujet_id[i],]$adres
 
         }
     }}
-
-
-
 
 # il faut calculer la durée de chaque groupe d'adresses jointives (les adresses pouvant se superposer)
 
@@ -125,6 +93,7 @@ sujet.dat$dif <- sujet.dat$intervalle_tps - sujet.dat$temps_habite
 sujet.dat %>% 
     filter(dif == 0) 
 
+# nombre de jour sans adresses
 sujet.dat %>% 
     filter(dif != 0) %>% 
 ggplot( aes(x = dif)) +
@@ -135,9 +104,12 @@ ggplot( aes(x = dif)) +
         subtitle = "682 sujets sans écart") +
     theme_bw() 
 
-plot_group_adresse(affiche_un_sujet("02_0117"))
 # ici vu un petit pb sur le cas de meme adresse
 
+adresse_commune.dat[adresse_commune.dat$sujet_id == "20_0493",] %>% 
+    ggplot(aes(y = adresse_clb, x = date_start)) +
+    geom_segment(aes(x = date_start, y = adresse_clb, xend = date_end, yend = adresse_clb, col = as.factor(adresse_jointives), lwd = 1)) +
+    theme_bw()
 
 ##.###################################################################################33
 ## III. répartition spatiale / type d'espace ====
