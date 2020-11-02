@@ -1,0 +1,90 @@
+---
+title: "Modèle de données"
+author: "Olivier Leroy"
+date: "11/2/2020"
+lang: fr-FR
+output: 
+    bookdown::html_document2:
+        theme: readable
+        toc: true
+        toc_float: true
+        number_sections: true
+        toc_depth: 3
+        fig_caption: true
+        keep_md: true
+        code_folding: hide
+---
+
+
+Cette partie vise à présenter l'état d'avancement de la réflexion sur le modèle de données et les choix techniques en découlant.
+
+Un modèle de données est souvent divisé en :
+
+- un modèle conceptuel
+- un modèle structurel 
+- un modèle physique
+
+# Modèle physique
+
+C'est comment on stock et accéde à la donnée. 
+
+## Pourquoi ne pas travailler avec des fichiers "plats" (.shp, geojson, txt, xls) ? 
+
+&rarr; Les boites mails croulent sous les envoies 
+
+&rarr; On ne sait plus sur quels versions on doit travailler
+
+L'UJM fournie une petite VM (machine virtuelle) : 
+
+
+> * Debian 10.3 64bits (8Go RAM, 2 CPU)
+> * Taille du disque  : 200Go
+> * Postgresql 12, postgis 3 (Nginx, Apache, TomcatII)
+
+Les accés sont restreints par l'IP (besoin d'une IP fixe), chiffrement, mot de passe. La Dnum prend en charge la sauvegarde. 
+
+## Pourquoi 200 go ?
+
+&rarr; On ne paye pas le service
+
+&rarr; Cela semblait suffisant si on stock uniquement les classifications (mais largement insuffisant si on souhaite stocker les images).
+
+# Modèle conceptuel
+
+C'est une représentation logique de la donnée.
+
+On a des **sujets** : 
+
+* Un identifiant
+
+* Une date de naissance
+
+* 1 à n adresses de résidence 
+
+
+Des **résidences** :
+
+* un identifiant 
+
+* 1 a n sujet 
+
+* Une localisation : adresse plus ou moins précise
+
+* Une date de début 
+
+* Une date de fin
+
+
+
+Quelques remarques :
+
+Il est possible que le première date de résidence ne coincide pas avec la date de naissance (avant ou après). Il est possible que la date de début soit la même que la date de fin (interval null probablement lié à la précision de la donnée). 
+
+
+![Première version du modèle conceptuel](/home/defuneste/Documents/recherche/gouramic/rapport/test.jpg)
+
+
+Ce sont ces résidences que l'on va chercher à caractŕiser par des informations provenant de photos aériennes et la classification de Gouramic. Puis l'on qualifiera les sujets par les résidences. 
+
+
+

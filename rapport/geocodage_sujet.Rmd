@@ -28,7 +28,7 @@ C'est un document de travail. Ses objectifs sont :
 * Identifier des contraintes pour la construction de la base et des analyses qui suivront
 
 
-# Présentation du jeux de données 
+    # Présentation du jeux de données 
 
 ```{r chargement des données}
 # c'est un fichier un peu nettoyer et reorganiser cf detail
@@ -111,7 +111,7 @@ DT::datatable(allsujet_clean.dat %>%
     mutate(Num_adresse = as.numeric(str_extract(allsujet_clean.dat$Id_cart, pattern = "[0-9]{1,2}?$")),
            Sujet = substr(allsujet_clean.dat$Id_cart, 1,7)) %>% 
     filter(Sujet %in% allsujet.dat$ID_SECONDAIRE[is.na(allsujet.dat$CP_commune_p)]) %>% 
-    full_join(adresse_NA, by = c("Sujet", "Sujet")) %>% 
+    full_join(adresse_NA, by = c("Sujet" = "Sujet")) %>% 
     filter(is.na(Commune)) %>% 
     select(Sujet, Num_adresse, Nb_na, Max_adresse))
 
