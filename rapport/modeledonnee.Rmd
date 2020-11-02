@@ -16,6 +16,12 @@ output:
 ---
 
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+pkgs <-  c("dplyr","stringr", "lubridate", "ggplot2", "sf")
+inst <- lapply(pkgs, library, character.only = TRUE)
+```
+
 Cette partie vise à présenter l'état d'avancement de la réflexion sur le modèle de données et les choix techniques en découlant.
 
 Un modèle de données est souvent divisé en :
@@ -26,7 +32,7 @@ Un modèle de données est souvent divisé en :
 
 # Modèle physique
 
-C'est comment on stock et accéde à la donnée. 
+Comment stock-on et accéde-t-on à la donnée ? 
 
 ## Pourquoi ne pas travailler avec des fichiers "plats" (.shp, geojson, txt, xls) ? 
 
@@ -81,10 +87,20 @@ Quelques remarques :
 Il est possible que le première date de résidence ne coincide pas avec la date de naissance (avant ou après). Il est possible que la date de début soit la même que la date de fin (interval null probablement lié à la précision de la donnée). 
 
 
-![Première version du modèle conceptuel](/home/defuneste/Documents/recherche/gouramic/rapport/test.jpg)
+![**Première version du modèle conceptuel**](/home/defuneste/Documents/recherche/gouramic/rapport/test.jpg#center)
 
 
-Ce sont ces résidences que l'on va chercher à caractŕiser par des informations provenant de photos aériennes et la classification de Gouramic. Puis l'on qualifiera les sujets par les résidences. 
+Ce sont ces résidences que l'on va chercher à caractériser par des informations provenant de photos aériennes et la classification de Gouramic. Puis, on qualifiera les sujets par les résidences. 
+
+```{r}
+adresse_commune.dat <- readRDS("../data/adresse")
+adresse_commune.dat[adresse_commune.dat$sujet_id == "20_0493",] %>% 
+    ggplot(aes(y = adresse_clb, x = date_start)) +
+    geom_segment(aes(x = date_start, y = adresse_clb, xend = date_end, yend = adresse_clb, col = as.factor(adresse_jointives), lwd = 1)) +
+    theme_bw()
+```
 
 
+
+![**Deuxième version du modèle conceptuel**](/home/defuneste/Documents/recherche/gouramic/rapport/modele-logique-2-1.jpg#center)
 

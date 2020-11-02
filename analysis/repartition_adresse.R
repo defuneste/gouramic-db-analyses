@@ -73,6 +73,8 @@ adresse_commune.dat[adresse_commune.dat$sujet_id ==sujet.dat$sujet_id[i],]$adres
 
 rm(i,j, merge.indices, jim)
 
+#saveRDS(adresse_commune.dat, file = "data/adresse")
+
 # il faut calculer la durée de chaque groupe d'adresses jointives (les adresses pouvant se superposer)
 
 temps_habite.dat <- adresse_commune.dat %>% 
