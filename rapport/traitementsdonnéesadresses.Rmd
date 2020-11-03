@@ -47,16 +47,92 @@ Deux géocodages en parallèle ont été conduits :
 
 La préparation des données, mise en forme et corréction à la marge pour faire le gécoddage avec BanR est disponible dans "Prétraitement_ETL/clean_geocodagev2.R"
 
+Ces deux géocodages ne possédent pas tout à fait les mêmes categories de précisions mais il y a des équivalences : 
+
+ESRI | BanR
+---|---
+1_PointAdresse | housenumber
+2_AdresseInter | NA
+3_Voie | street
+4_LieuDitHabit | locality
+5_ChefLieu | municipality
+6_CodePostal | municipality
+7_Ville |municipality
+
+
+Avant d'avoir le géocodage d'ESRI : 193 adresses avait été recodées (Passage sous QGIS avec OSM et utiliation de nominatim et de google map).
+
 ### Résultats des géocodages
 
 ## Ecart entre les deux geocodages
 
-R mentionner le script
+![**Tableau de comparaison entre les différentes catégories de precision**](/home/defuneste/Documents/recherche/gouramic/rapport/comparaisongeocodage.jpg)
+
+En plus d'équivalence sur la precision nous avons aussi regarder la précision spatiale. 
+
+On décide de partir sur le géocodage ESRI.
 
 ## Géocodage à la mains
 
 QGIS (avec OSM/google map), ESRI 
 
-## clustering pour identifier les doublons
+## Clustering pour identifier les doublons
+
+```r
+### ici le code est juste donné pour lecture, la matrice est un peu lourde pour calculer
+mat_dist <- st_distance(geocodage_adresse.shp)
+hc <- hclust(as.dist(mat_dist), method="complete")
+
+# sur d m
+d=1
+
+geocodage_adresse.shp$cluster <- cutree(hc, h=d)
+# sur une plus grande distance : 50 m cf plot plus bas
+geocodage_adresse.shp$bigcluster <- cutree(hc, h=100)
+## 2.2 Avec un buffer de d distance et un intersects
+# peut être utile de faire un filtre 
+
+buffer_10 <-st_buffer(geocodage_adresse.shp, d)
+buffer_50 <- st_buffer(geocodage_adresse.shp, 100) # buffer de 100 m et pas bufer_50 mauvais nom
+
+geocodage_adresse.shp$nb_cluster <-lengths(st_intersects(geocodage_adresse.shp, buffer_10))
+geocodage_adresse.shp$nb_bigcluster <-lengths(st_intersects(geocodage_adresse.shp, buffer_50))
+
+rm(hc, buffer_10, buffer_50, mat_dist)
+
+##  2.2 Plot pour regarder l'evolution du clustering en fonction de la distance  ========================
+
+# une fonction de ce qui est fait avec le buffer
+number_cluster <- function(data = geocodage_adresse.shp, d) {
+                            buffer_XX <- st_buffer(geocodage_adresse.shp, d)
+                            dt <- data.frame(d,
+                                       sum(lengths(st_intersects(geocodage_adresse.shp, buffer_XX)) != 1))
+                            colnames(dt) <- c("d", "nb")
+                            return(dt)
+}
+
+cluster_dist <- rbind(
+    number_cluster(d = 1),
+    number_cluster(d = 5),
+    number_cluster(d = 10),
+    number_cluster(d = 25),
+    number_cluster(d = 50),
+    number_cluster(d = 100),
+    number_cluster(d = 150),
+    number_cluster(d = 200)
+#    number_cluster(d = 500),
+#    number_cluster(d = 1000),
+#    number_cluster(d = 10000)
+    
+)
+
+```
+
+![**Nombre de cluster en fonction de la distance**](/home/defuneste/Documents/recherche/gouramic/rapport/cluster_dist.png)
+
+
 
 # Réassamblage, normalisation des données et export dans la base
+
+L'ensemble de ces opérations est disponible dans le script : "Prétraitement_ETL/normalize_adresse.R"
+

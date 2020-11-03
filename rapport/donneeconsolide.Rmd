@@ -1,0 +1,73 @@
+---
+title: "Quelques données consolidées"
+author: "Olivier Leroy"
+date: "11/3/2020"
+output: 
+    bookdown::html_document2:
+        theme: readable
+        toc: true
+        toc_float: true
+        number_sections: true
+        toc_depth: 3
+        fig_caption: true
+        keep_md: true
+        code_folding: hide
+---
+
+
+```{r, message=FALSE, warning=FALSE}
+setwd("/home/defuneste/Documents/recherche/gouramic/gouramic-db-analyses/")
+source("Prétraitement_ETL/exploration_db.R")
+
+library(ggplot2, plotly)
+
+
+# on reprend le shape des communes avec l'info rural-urbain-peri
+communes.shp <- st_read("data/commune.shp", quiet=T)
+
+# rajout du type de commune par adresse !!! attention c'est le type de commune en 2019
+adresse_commune.shp <- st_join(st_transform(adresse_sujet_temporal.shp, 2154), st_transform(communes.shp[,c("TYPE_CO", "insee")], 2154))
+
+adresse_commune.shp$intervalle_tps <- lubridate::interval(adresse_commune.shp$date_start, adresse_commune.shp$date_end) %>% 
+                                        as.duration() %>%  
+                                        as.numeric("days")
+```
+
+
+# EDA
+
+### Répartition du nombre d'adresse
+
+```{r}
+repart <- adresse_commune.shp %>% 
+    st_drop_geometry() %>% 
+    dplyr::group_by(sujet_id) %>% 
+    dplyr::summarize(nb_adresse = n()) %>% 
+    ggplot(aes(nb_adresse)) +
+    geom_histogram(binwidth = 1, color = "white" ) 
+plotly::ggplotly(repart)
+rm(repart)
+```
+
+
+
+```{r}
+ 
+dure <- adresse_commune.shp %>% 
+    ggplot(aes(intervalle_tps)) +
+    geom_histogram(binwidth = 360, col = "white") +
+    geom_vline(xintercept =  mean(adresse_commune.shp$intervalle_tps, na.rm = T), col = "red", lwd = 1.25) +
+    geom_vline(xintercept =  median(adresse_commune.shp$intervalle_tps, na.rm = T), col = "red", lwd = 1.25, lty = 2) +
+    xlab("Durée de residence (jours)") + 
+    ylab("nbr") +
+    theme_bw()
+plotly::ggplotly(dure)
+rm(dure)
+```
+
+
+
+```{r}
+
+```
+
