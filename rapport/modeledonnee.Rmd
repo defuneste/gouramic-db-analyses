@@ -40,6 +40,8 @@ Comment stock-on et accéde-t-on à la donnée ?
 
 &rarr; On ne sait plus sur quels versions on doit travailler
 
+&rarr; Avoir une séparation physique entre la préparation des données de leurs analyses
+
 L'UJM fournie une petite VM (machine virtuelle) : 
 
 
@@ -86,11 +88,14 @@ Quelques remarques :
 
 Il est possible que le première date de résidence ne coincide pas avec la date de naissance (avant ou après). Il est possible que la date de début soit la même que la date de fin (interval null probablement lié à la précision de la donnée). 
 
+## Première version du modéle conceptuel
 
 ![**Première version du modèle conceptuel**](/home/defuneste/Documents/recherche/gouramic/rapport/test.jpg#center)
 
 
 Ce sont ces résidences que l'on va chercher à caractériser par des informations provenant de photos aériennes et la classification de Gouramic. Puis, on qualifiera les sujets par les résidences. 
+
+## Quelques exemples :
 
 ```{r}
 adresse_commune.dat <- readRDS("../data/adresse")
@@ -100,7 +105,9 @@ adresse_commune.dat[adresse_commune.dat$sujet_id == "20_0493",] %>%
     theme_bw()
 ```
 
-
+## Deuxième version du modéle conceptuel
 
 ![**Deuxième version du modèle conceptuel**](/home/defuneste/Documents/recherche/gouramic/rapport/modele-logique-2-1.jpg#center)
 
+
+# modèle structurel 

@@ -27,8 +27,7 @@ C'est un document de travail. Ses objectifs sont :
 * Garder traces des différentes modifications sur le jeux de données et des opérations pour le géocodage
 * Identifier des contraintes pour la construction de la base et des analyses qui suivront
 
-
-    # Présentation du jeux de données 
+# Présentation du jeux de données 
 
 ```{r chargement des données}
 # c'est un fichier un peu nettoyer et reorganiser cf detail
@@ -50,7 +49,7 @@ Ce jeu comprends `r nrow(allsujet_clean.dat)` lignes pour `r length(unique(subst
 
 (ref:histonbadressemax) Distribution du nombre d'adresses par sujet
 
-```{r histonbadressemax, fig.cap="(ref:histonbadressemax)", fig.align = 'center'}
+```{r histonbadressemax, fig.cap="(ref:histonbadressemax)", fig.align = 'center', message=FALSE}
 allsujet_clean.dat %>% 
     mutate(ID_VISITE = as.numeric(str_extract(allsujet_clean.dat$Id_cart, pattern = "[0-9]{1,2}?$")),
            ID_SECONDAIRE = substr(allsujet_clean.dat$Id_cart, 1,7)) %>% 
@@ -64,7 +63,7 @@ allsujet_clean.dat %>%
 
 Il nous faut ici nous attarder sur la notion "d'adresse". Pour le moment cette dernière est juste une incrémentation lors d'un changement d'adresse ou lors d'un passage dans une résidence secondaire. Ainsi le sujet 01_0001 a pour adresse, dans l'ordre, "1", "2", "3", "4", "5". Qu'importe si "3" est son retour à "1" et que "5" correspond à sa résidence de vacances (où il peut y aller presque tous les ans). 
 
-Il va être important pour la base de données de clarifier lorsqu'on a bien une seule adresse mais distincte en dates.
+Il va être important pour la base de données de clarifier lorsqu'on a bien une seule adresse mais distincte au niveau des dates. Dans la meme mesure on peut imaginer une seule adresse mais partagé par différents sujets (cas des internat d'écoles ou des casernes). 
 
 Avant de les présenter nous pouvons regarder les sujets comportant trop de valeurs manquantes risquant de rendre tout géocodage impossible. 
 

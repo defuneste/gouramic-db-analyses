@@ -1,0 +1,62 @@
+---
+title: "Traitements des données Adresses"
+author: "Olivier Leroy"
+date: "11/3/2020"
+lang: fr-FR
+output: 
+    bookdown::html_document2:
+        theme: readable
+        toc: true
+        toc_float: true
+        number_sections: true
+        toc_depth: 3
+        fig_caption: true
+        keep_md: true
+        code_folding: hide
+---
+
+# Prétraitements et sources des données
+
+## Sources de données
+
+Le géocodage c'est fait à partir d'un jeu de données constitué via des enquêtes téléphoniques [si on a une ref.]. La nature même des questions comme savoir où habitaient certains sujets lors de leur naissance fait qu'il y a des manques dans le jeu de données (même si dans la mesure du possible un des parents était présent [à confirmer]). 
+
+
+## Prétraitements des valeurs manquantes 
+
+Le premier traitement a été de repérer des valeurs manquantes (voir "rapport/geocodage_sujet.Rmd" pour plus de précisions) dans les sujets et adresses sans possibilité d'imputation. 
+
+Il y a ainsi :
+
+* 31 sujets sans adresses 
+* 14 adresses "terminales" sans localisation 
+* 3 adresses peu/pas localisable : en dehors de France, dans des campings
+
+Les deux premieres sont probablement des erreurs d'extractions ou d'encodage et ne doivent pas être gardées. La troisème aurait pu être gardée mais comme nous souhaitons obtenir des informations aériennes nous le l'avons pas non plus garde. Cést aussi ce raisonnement qui nous à pousser à ne pas garder les adresses les départements/territoires d'outre-mer [combien?]. 
+
+# Geocodage
+
+Le gécodage est l'opération de transformation d'une adresse (45 rue Roger Salengro, 42000 Saint-Etienne) en des coordonnées en lat/long.
+
+## Géocodage ESRI + BanR
+
+Deux géocodages en parallèle ont été conduits :
+
+* le premier mené par Matthieu avec la gamme ESRI
+* le second par Olivier avec [BanR](https://cran.r-project.org/web/packages/banR/index.html)
+
+La préparation des données, mise en forme et corréction à la marge pour faire le gécoddage avec BanR est disponible dans "Prétraitement_ETL/clean_geocodagev2.R"
+
+### Résultats des géocodages
+
+## Ecart entre les deux geocodages
+
+R mentionner le script
+
+## Géocodage à la mains
+
+QGIS (avec OSM/google map), ESRI 
+
+## clustering pour identifier les doublons
+
+# Réassamblage, normalisation des données et export dans la base
