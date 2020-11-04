@@ -36,24 +36,35 @@ adresse_commune.shp$intervalle_tps <- lubridate::interval(adresse_commune.shp$da
 
 # EDA
 
+### Naissance ?
+
 ### Répartition du nombre d'adresse
 
-```{r}
+```{r, message=FALSE}
 repart <- adresse_commune.shp %>% 
     st_drop_geometry() %>% 
     dplyr::group_by(sujet_id) %>% 
-    dplyr::summarize(nb_adresse = n()) %>% 
+    dplyr::summarize(nb_adresse = n()) 
+repartgg <- repart %>% 
     ggplot(aes(nb_adresse)) +
-    geom_histogram(binwidth = 1, color = "white" ) 
-plotly::ggplotly(repart)
-rm(repart)
+    geom_histogram(binwidth = 1, color = "white" ) +
+    ylab("Nbr") +
+    xlab("Nombre d'adresses") +
+    theme_bw()
+plotly::ggplotly(repartgg)
+
 ```
 
+On obtient en moyenne `r mean(repart$nb_adresse)` et une median de `r median(repart$nb_adresse)`adresse par sujet.
 
+## Informations temporelles sur les adresses
 
-```{r}
- 
-dure <- adresse_commune.shp %>% 
+Il y a 17 adresses ou la date de début est la même que la date de fin (durée nulle) et 5 cas ou ce calcul n'est pas possible (données manquante date de début ou fin). 
+
+### Répartition de la durée des adresses :
+
+```{r, message=FALSE, warning=FALSE}
+ dure <- adresse_commune.shp %>% 
     ggplot(aes(intervalle_tps)) +
     geom_histogram(binwidth = 360, col = "white") +
     geom_vline(xintercept =  mean(adresse_commune.shp$intervalle_tps, na.rm = T), col = "red", lwd = 1.25) +
@@ -65,9 +76,59 @@ plotly::ggplotly(dure)
 rm(dure)
 ```
 
+Le temps de résidence moyen est de `r round(mean(adresse_commune.shp$intervalle_tps, na.rm = T),2)` et la median de `r median(adresse_commune.shp$intervalle_tps, na.rm = T)` jours.
 
+## Durée sans résidence : 
+
+![**Modèle conceptuel avec les jours sans résidence**](/home/defuneste/Documents/recherche/gouramic/rapport/joursansresidence.jpg)
+
+
+```{r, message=FALSE}
+
+adresse_commune.dat <- readRDS("../data/adresse")
+sujet.dat <- adresse_commune.dat %>% 
+                group_by(sujet_id) %>% 
+                summarize(date_naissance = first(date_naissance),
+                          date_min = min(date_start), 
+                          date_max = max(date_end),
+                          nbr_adresse = n()) %>% 
+                mutate(intervalle_tps = as.numeric(as.duration(interval(date_min, date_max)) , "days"))
+
+temps_habite.dat <- adresse_commune.dat %>% 
+    group_by(sujet_id, adresse_jointives) %>% 
+    summarise(date_min = min(date_start),
+              date_max = max(date_end)) %>% 
+    mutate(inter = as.numeric(as.duration(interval(date_min, date_max)) , "days")) %>% 
+    select(sujet_id, inter) %>% 
+    group_by(sujet_id) %>% 
+    summarise(temps_habite = sum(inter))
+
+
+sujet.dat <- sujet.dat %>% 
+             left_join(temps_habite.dat, by = "sujet_id")
+
+rm(temps_habite.dat)
+
+sujet.dat$dif <- sujet.dat$intervalle_tps - sujet.dat$temps_habite
+
+```
+
+On obtient 682 (1124) cas où il n'y a pas de "trous" dans les résidences. 
+
+La distribution, en nombre de jours, des cas avec une absence de résidence suis le graphique ci dessous. 
 
 ```{r}
+joursans <- sujet.dat %>% 
+    filter(dif != 0) %>% 
+ggplot( aes(x = dif)) +
+    geom_histogram(binwidth = 180, col = "white") + 
+    xlab("Nbr de jours, Pas de 180 jours") + 
+    ylab("Nbr") +
+    labs(title = "Distribution du nombre de jours sans résidence",
+        subtitle = "682 sujets sans écart") +
+    theme_bw() 
 
+plotly::ggplotly(joursans)
+rm(joursans)
 ```
 

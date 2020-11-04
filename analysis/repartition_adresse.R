@@ -23,6 +23,9 @@ adresse_commune.shp <- st_join(st_transform(adresse_sujet_temporal.shp, 2154), s
 ## II. répartition temporelle ====
 ##.#################################################################################33
 
+
+#### 2.1 Répartition de la durée des adresses ==============================
+
 adresse_commune.shp$intervalle_tps <- lubridate::interval(adresse_commune.shp$date_start, adresse_commune.shp$date_end) %>% 
                                         as.duration() %>%  
                                         as.numeric("days")
@@ -106,7 +109,7 @@ ggplot( aes(x = dif)) +
     geom_histogram(binwidth = 180, col = "white") + 
     xlab("Nbr de jours, Pas de 180 jours") + 
     ylab("nbr") +
-    labs(title = "Répartition des écarts entre les jours avec une résidence et ceux sans",
+    labs(title = "Nombre de jours sans résidence",
         subtitle = "682 sujets sans écart") +
     theme_bw() 
 

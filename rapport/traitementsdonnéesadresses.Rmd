@@ -64,7 +64,14 @@ Avant d'avoir le géocodage d'ESRI : 193 adresses avait été recodées (Passage
 
 ### Résultats des géocodages
 
-## Ecart entre les deux geocodages
+## Ecarts entre les deux geocodages
+
+### ECarts de distance entre les points
+
+
+
+
+### Ecart dans les types de précisions :
 
 ![**Tableau de comparaison entre les différentes catégories de precision**](/home/defuneste/Documents/recherche/gouramic/rapport/comparaisongeocodage.jpg)
 
