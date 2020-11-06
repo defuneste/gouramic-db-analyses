@@ -68,7 +68,7 @@ Avant d'avoir le géocodage d'ESRI : 193 adresses avait été recodées (Passage
 
 ### ECarts de distance entre les points
 
-
+5 m 
 
 
 ### Ecart dans les types de précisions :
@@ -142,4 +142,12 @@ cluster_dist <- rbind(
 # Réassamblage, normalisation des données et export dans la base
 
 L'ensemble de ces opérations est disponible dans le script : "Prétraitement_ETL/normalize_adresse.R"
+
+## Données géocodées / géocodées à la main 
+
+```{r}
+adresse_commune.dat <- readRDS("../data/adresse")
+table(adresse_commune.dat$source_codage)
+```
+
 

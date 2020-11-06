@@ -97,9 +97,71 @@ exemple.dat <- exemple.dat %>%
 
 str(exemple.dat)
 
-# 2-  lecture des dates debut et fin par sujet ==================
 
-sujet.dat <- read.csv("data/Liste.csv", sep = "\t")
+# je sais plus d'ou vient de csv du coup je vais chercher les dates de naissance dans adresse_commune.dat
+#sujet.dat <- read.csv("data/Liste.csv", sep = "\t")
+
+adresse_commune.dat <- readRDS("data/adresse")
+adresse_commune.dat$interval_adresse <-  interval(adresse_commune.dat$date_start, adresse_commune.dat$date_end)
+
+# 1 Naissance =========================
+adresse_commune.dat$Nun_adresse <- as.numeric(str_extract(adresse_commune.dat$adresse_clb, pattern = "[0-9]{1,2}?$"))
+adresse_commune.dat$Naissance <- ifelse(adresse_commune.dat$Nun_adresse == 1,  1, 0)
+
+# 2  Enfance =====================
+#ici on va passer par un interval 
+# on peut faire fluctuer ce dernier 
+# en année
+enfance_debut <- 7
+enfance_fin <- 10
+
+adresse_commune.dat$Enfance <- ifelse(
+    int_overlaps(adresse_commune.dat$interval_adresse, 
+                 interval(adresse_commune.dat$date_naissance + years(enfance_debut), adresse_commune.dat$date_naissance + years(enfance_fin))) == TRUE
+    , 1, 0)
+
+# 3 Adolescence =====================
+# en année
+ado_debut <- 11
+ado_fin <- 15
+adresse_commune.dat$Adolescence <- ifelse(
+    int_overlaps(adresse_commune.dat$interval_adresse, 
+                 interval(adresse_commune.dat$date_naissance + years(ado_debut), adresse_commune.dat$date_naissance + years(ado_fin))) == TRUE
+    , 1, 0)
+
+adresse_commune.dat$life_histo <- adresse_commune.dat$Naissance + adresse_commune.dat$Enfance + adresse_commune.dat$Adolescence
+adresse_commune.dat$life_histo <- ifelse(adresse_commune.dat$life_histo > 0, 1, 0)
+adresse_precise.dat <- adresse_commune.dat[adresse_commune.dat$precision < 5, ]
+
+# on prepare la jointure
+exemple.dat <- exemple.dat[exemple.dat$sujet != "gouResu",]
+exemple.dat$adresse_clb <- paste0(exemple.dat$sujet, "_",exemple.dat$adresse)
+
+adresse_jointure <- adresse_commune.dat %>% 
+    dplyr::select(adresse_clb, interval_adresse, date_naissance)
+    
+
+# une jointure 
+exemplev2.dat <- left_join(exemple.dat, adresse_jointure, by = c("adresse_clb" = "adresse_clb") )
+
+# histoire de vie
+exemplev2.dat$Naissance <- ifelse(exemplev2.dat$adresse == 1, 1, 0)
+
+exemplev2.dat$Enfance <- ifelse(
+    int_overlaps(exemplev2.dat$interval_adresse, 
+                 interval(exemplev2.dat$date_naissance + years(enfance_debut), exemplev2.dat$date_naissance + years(enfance_fin))) == TRUE
+    , 1, 0)
+
+exemplev2.dat$Adolescence <- ifelse(
+    int_overlaps(exemplev2.dat$interval_adresse, 
+                 interval(exemplev2.dat$date_naissance + years(ado_debut), exemplev2.dat$date_naissance + years(ado_fin))) == TRUE
+    , 1, 0)
+
+exemplev2.dat$life_histo <-  ifelse((exemplev2.dat$Naissance + exemplev2.dat$Enfance + exemplev2.dat$Adolescence) > 0, 1, 0)
+
+table(exemplev2.dat$life_histo )
+
+# 2-  lecture des dates debut et fin par sujet ==================
 
 # si on veut tidy le jeux de données il faut recoder Date_Debut et Date_Fin 
 

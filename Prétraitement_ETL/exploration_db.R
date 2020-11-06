@@ -3,7 +3,7 @@
 
 source("code.R") # ici j'ai mis codes/pwd/port/adresse c'est en .gitignore
 
-pkgs <-  c("DBI","RPostgreSQL", "dm",  "microbenchmark", "sf", "purrr", "lubridate", "dplyr", "tidyr")
+pkgs <-  c("DBI","RPostgreSQL", "stringr",  "microbenchmark", "sf", "purrr", "lubridate", "dplyr", "tidyr")
 inst <- lapply(pkgs, library, character.only = TRUE)
 
 

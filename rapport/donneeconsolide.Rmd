@@ -36,9 +36,85 @@ adresse_commune.shp$intervalle_tps <- lubridate::interval(adresse_commune.shp$da
 
 # EDA
 
-### Naissance ?
+## Precision des données de geolocalisation 
 
-### Répartition du nombre d'adresse
+```{r}
+adresse_commune.shp$precision <- as.factor(adresse_commune.shp$precision)
+
+precisiongg <- adresse_commune.shp %>% 
+    ggplot(aes(x = precision, fill = precision)) +
+    geom_bar() +
+    ylab("nbr") +
+    theme_bw()
+
+plotly::ggplotly(precisiongg)
+```
+
+
+### Naissance
+
+```{r}
+adresse_commune.dat <- readRDS("../data/adresse")
+
+naissancegg <- adresse_commune.dat %>% 
+    ggplot(aes(x = year(date_naissance))) +
+    geom_histogram(binwidth = 1, color = "white" ) + 
+    labs(x = "Années de naissance", y = "Nombre de sujets") +
+    theme_bw()
+
+plotly::ggplotly(naissancegg)
+
+
+```
+
+### Histoire de vie 
+
+```{r}
+
+adresse_commune.dat$interval_adresse <-  interval(adresse_commune.dat$date_start, adresse_commune.dat$date_end)
+
+# 1 Enfance =====================
+# ici on passe par le numero d'adresse 
+adresse_commune.dat$Nun_adresse <- as.numeric(str_extract(adresse_commune.dat$adresse_clb, pattern = "[0-9]{1,2}?$"))
+adresse_commune.dat$Naissance <- ifelse(adresse_commune.dat$Nun_adresse == 1,  1, 0)
+
+# ici j'ai un pb lié au dublicat adresse
+
+# 2 Enfance =====================
+#ici on va passer par un interval 
+# on peut faire fluctuer ce dernier 
+# en année
+enfance_debut <- 7
+enfance_fin <- 10
+
+adresse_commune.dat$Enfance <- ifelse(
+    int_overlaps(adresse_commune.dat$interval_adresse, 
+                 interval(adresse_commune.dat$date_naissance + years(enfance_debut), adresse_commune.dat$date_naissance + years(enfance_fin))) == TRUE
+    , 1, 0)
+
+# 3 Adolescence =====================
+
+# en année
+ado_debut <- 11
+ado_fin <- 15
+
+adresse_commune.dat$Adolescence <- ifelse(
+    int_overlaps(adresse_commune.dat$interval_adresse, 
+                 interval(adresse_commune.dat$date_naissance + years(ado_debut), adresse_commune.dat$date_naissance + years(ado_fin))) == TRUE
+    , 1, 0)
+
+### on garde que les adresse comportant ces categories et precison < 5
+adresse_commune.dat$life_histo <- adresse_commune.dat$Naissance + adresse_commune.dat$Enfance + adresse_commune.dat$Adolescence
+adresse_commune.dat$life_histo <- ifelse(adresse_commune.dat$life_histo > 0, 1, 0)
+adresse_precise.dat <- adresse_commune.dat[adresse_commune.dat$precision < 5, ]
+
+table(adresse_precise.dat$life_histo)
+```
+
+On a 2251 adresses avec Naissance / Enfance (7-11) / Adolescence (11-15). C'est près d'un tier des adresses. 
+
+
+### Répartition du nombre d'adresse/sujet
 
 ```{r, message=FALSE}
 repart <- adresse_commune.shp %>% 
@@ -85,7 +161,7 @@ Le temps de résidence moyen est de `r round(mean(adresse_commune.shp$intervalle
 
 ```{r, message=FALSE}
 
-adresse_commune.dat <- readRDS("../data/adresse")
+
 sujet.dat <- adresse_commune.dat %>% 
                 group_by(sujet_id) %>% 
                 summarize(date_naissance = first(date_naissance),

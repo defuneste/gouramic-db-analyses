@@ -23,8 +23,21 @@ adresse_commune.shp <- st_join(st_transform(adresse_sujet_temporal.shp, 2154), s
 ## II. répartition temporelle ====
 ##.#################################################################################33
 
+#### 2.3 Répartition par precision
 
-#### 2.1 Répartition de la durée des adresses ==============================
+adresse_commune.shp$precision <- as.factor(adresse_commune.shp$precision)
+adresse_commune.shp$source_codage <- as.factor(adresse_commune.shp$source_codage)
+
+adresse_commune.shp %>% 
+    ggplot(aes(x = precision, fill = precision)) +
+    geom_bar() +
+    ylab("nbr") +
+    theme_bw()
+
+
+table(adresse_commune.shp$source_codage)
+
+#### 2.2 Répartition de la durée des adresses ==============================
 
 adresse_commune.shp$intervalle_tps <- lubridate::interval(adresse_commune.shp$date_start, adresse_commune.shp$date_end) %>% 
                                         as.duration() %>%  
@@ -141,3 +154,62 @@ adresse_commune.shp %>%
 dpt.shp$nbr <- lengths(st_intersects(dpt.shp, adresse_commune.shp ))
 plot(dpt.shp["nbr"])
 hist(dpt.shp$nbr, breaks = 10)
+
+
+##.###################################################################################33
+## IV. répartition par stade de vie ====
+##.#################################################################################33
+
+adresse_commune.dat$interval_adresse <-  interval(adresse_commune.dat$date_start, adresse_commune.dat$date_end)
+
+# 4-1 Naissance =========================
+# si 1 -> Naissance
+# ici on passe par le numero d'adresse 
+adresse_commune.dat$Nun_adresse <- as.numeric(str_extract(adresse_commune.dat$adresse_clb, pattern = "[0-9]{1,2}?$"))
+adresse_commune.dat$Naissance <- ifelse(adresse_commune.dat$Nun_adresse == 1,  1, 0)
+
+# ici j'ai un pb lié au dublicat adresse
+
+# 2-b Enfance =====================
+#ici on va passer par un interval 
+# on peut faire fluctuer ce dernier 
+# en année
+enfance_debut <- 7
+enfance_fin <- 10
+
+adresse_commune.dat$Enfance <- ifelse(
+    int_overlaps(adresse_commune.dat$interval_adresse, 
+                 interval(adresse_commune.dat$date_naissance + years(enfance_debut), adresse_commune.dat$date_naissance + years(enfance_fin))) == TRUE
+    , 1, 0)
+
+# 2-c Adolescence =====================
+
+# en année
+ado_debut <- 11
+ado_fin <- 15
+
+adresse_commune.dat$Adolescence <- ifelse(
+    int_overlaps(adresse_commune.dat$interval_adresse, 
+                 interval(adresse_commune.dat$date_naissance + years(ado_debut), adresse_commune.dat$date_naissance + years(ado_fin))) == TRUE
+    , 1, 0)
+
+
+### on garde 
+
+adresse_commune.dat$life_histo <- adresse_commune.dat$Naissance + adresse_commune.dat$Enfance + adresse_commune.dat$Adolescence
+adresse_commune.dat$life_histo <- ifelse(adresse_commune.dat$life_histo > 0, 1, 0)
+
+table(adresse_commune.dat$Naissance)
+table(adresse_commune.dat$Enfance)
+table(adresse_commune.dat$Adolescence)
+
+# si on enlève tous ce qui est en dessous de 4 en precision
+
+adresse_precise.dat <- adresse_commune.dat[adresse_commune.dat$precision < 5, ]
+
+table(adresse_precise.dat$precision)
+table(adresse_precise.dat$life_histo)
+sum(table(adresse_precise.dat$life_histo))
+
+table(adresse_precise.dat$life_histo)/sum(table(adresse_precise.dat$life_histo)) * 100
+    

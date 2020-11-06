@@ -110,4 +110,6 @@ adresse_commune.dat[adresse_commune.dat$sujet_id == "20_0493",] %>%
 ![**Deuxième version du modèle conceptuel**](/home/defuneste/Documents/recherche/gouramic/rapport/modele-logique-2-1.jpg#center)
 
 
+## Un exemple avec les photos
+
 # modèle structurel 
