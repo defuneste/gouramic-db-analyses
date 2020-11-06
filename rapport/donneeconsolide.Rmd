@@ -208,3 +208,5 @@ plotly::ggplotly(joursans)
 rm(joursans)
 ```
 
+## Répartition spatiale des adresses
+

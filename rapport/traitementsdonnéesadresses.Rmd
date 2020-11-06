@@ -19,7 +19,7 @@ output:
 
 ## Sources de données
 
-Le géocodage c'est fait à partir d'un jeu de données constitué via des enquêtes téléphoniques [si on a une ref.]. La nature même des questions comme savoir où habitaient certains sujets lors de leur naissance fait qu'il y a des manques dans le jeu de données (même si dans la mesure du possible un des parents était présent [à confirmer]). 
+Le géocodage c'est fait à partir d'un jeu de données constitué via des enquêtes téléphoniques. La nature même des questions comme savoir où habitaient certains sujets lors de leur naissance fait qu'il y a des manques dans le jeu de données (même si dans la mesure du possible un des parents était présent [à confirmer]). 
 
 
 ## Prétraitements des valeurs manquantes 
@@ -61,29 +61,43 @@ ESRI | BanR
 
 
 Avant d'avoir le géocodage d'ESRI : 193 adresses avait été recodées (Passage sous QGIS avec OSM et utiliation de nominatim et de google map).
+Nous sommes partis du géocodage ESRI. 
 
 ### Résultats des géocodages
 
+## Schèma géneral
+
+![**Tableau de comparaison entre les différentes catégories de precision**](/home/defuneste/Documents/recherche/gouramic/rapport/geotrait_gouramic.png)
+
 ## Ecarts entre les deux geocodages
 
-### ECarts de distance entre les points
+Une matrice de distance entre les memes points issues des deux géocodage a été produites et tous les cas comprenant un écart de plus de 5 m on été verifier à la main (131 cas). 
 
-5 m 
+La procédure était identique :
+
+1. les données snt exportés dans QGIS avec une visualition OSM
+
+2. l'adresse est localisée en verifiant avec google map/ street view et Nominatim 
+
+3. dans certains cas une recherche web pour trouver des pistes ou des correspondances pouvait être conduite (cas avec des erreurs de frappes dans l'adresse)
+
+4. encodage de la nouvelle adresse dans QGIS
+
+5. relecture du fichier avec R (lors du réassemblage)
 
 
-### Ecart dans les types de précisions :
+Ensuite tous les cas où les deux géocodage donnait une difference ont éte revus:  
+
 
 ![**Tableau de comparaison entre les différentes catégories de precision**](/home/defuneste/Documents/recherche/gouramic/rapport/comparaisongeocodage.jpg)
 
 En plus d'équivalence sur la precision nous avons aussi regarder la précision spatiale. 
 
-On décide de partir sur le géocodage ESRI.
-
-## Géocodage à la mains
-
-QGIS (avec OSM/google map), ESRI 
+Une fois les données resassemblées il était possible d'avoir des points très proches, adresses identiques, non prise en compte comme tels. Nous avons donc procedés à un clustering.
 
 ## Clustering pour identifier les doublons
+
+L'evolution du nombre de cluster de plus d'une adresse est présenté dans le graphe suivant. Il représente des clusters à 1, 5, 10, 25, 50, 100, 150 et 200 m de distance. Au vu du graphique les clusters compris entre 1m et 100 m on été verifié visuellement puis éventuellement rassemblé. 
 
 ```r
 ### ici le code est juste donné pour lecture, la matrice est un peu lourde pour calculer

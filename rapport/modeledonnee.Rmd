@@ -113,3 +113,5 @@ adresse_commune.dat[adresse_commune.dat$sujet_id == "20_0493",] %>%
 ## Un exemple avec les photos
 
 # modèle structurel 
+
+![**Modèle structurel**](/home/defuneste/Documents/recherche/gouramic/rapport/gouramic_db_Diagram.png)

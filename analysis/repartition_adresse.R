@@ -37,6 +37,10 @@ adresse_commune.shp %>%
 
 table(adresse_commune.shp$source_codage)
 
+length(unique(adresse_commune.dat$adresse_clb))
+
+
+
 #### 2.2 Répartition de la durée des adresses ==============================
 
 adresse_commune.shp$intervalle_tps <- lubridate::interval(adresse_commune.shp$date_start, adresse_commune.shp$date_end) %>% 
