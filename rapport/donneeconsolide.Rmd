@@ -210,3 +210,4 @@ rm(joursans)
 
 ## Répartition spatiale des adresses
 
+    

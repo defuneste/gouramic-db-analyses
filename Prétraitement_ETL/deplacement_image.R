@@ -4,6 +4,7 @@
 
 # attention j'attrape par l'extension 
 # il y a des jpg et jp2
+# si il y a d'autres formats il faut les rajouter
 
 ou_sont_les_images <- "data"
 ou_vont_les_images <- "/home/lo82302h/ortho/images/"
@@ -15,7 +16,8 @@ liste_abouger <- c(
 # le script de remi prend le nom de l'image commencant par IGNF etc 
 # ici on prend le nom de l'image : principe c'est tout ce qui est après le C
 on_separe <- sapply(liste_abouger, function(x){ strsplit(x, "/")})
-# c'est un peu laid d'indexer ici 
+
+# /!\ c'est une indexation relative, c'est un peu laid d'indexer ici 
 nom_image <- sapply(on_separe, function(x) {x[4]})
 
 # chemin avec nom de fichier
