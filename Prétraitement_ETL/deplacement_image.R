@@ -7,7 +7,9 @@
 # si il y a d'autres formats il faut les rajouter
 
 ou_sont_les_images <- "data"
-ou_vont_les_images <- "/home/lo82302h/ortho/images/"
+# note il faut créer le repertoire avant
+#dir.create() si on veut rester dans R
+ou_vont_les_images <- "path"
 
 liste_abouger <- c(
                     list.files(ou_sont_les_images, recursive = TRUE, pattern = "jp2$"),
@@ -27,4 +29,5 @@ un_chemin <- paste0(ou_vont_les_images,  nom_image)
 file.copy(paste0(ou_sont_les_images, "/", liste_abouger), un_chemin)
 
 rm(nom_image, un_chemin, on_separe, ou_sont_les_images, ou_vont_les_images)
+
 
