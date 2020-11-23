@@ -6,7 +6,7 @@ library("gdalUtils")
 ou_sont_les_images <- "/home/lo82302h/ortho/images/"
 
 out_dir <- "/home/lo82302h/ortho/images/img_gtiff/"
-dir.create("/home/lo82302h/ortho/images/img_gtiff/")
+dir.create(out_dir)
 
 batch_gdal_translate(
     infiles = ou_sont_les_images,
