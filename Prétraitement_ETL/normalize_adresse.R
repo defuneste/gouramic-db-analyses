@@ -82,10 +82,10 @@ sujet.dat <- allsujet_SansNA.dat %>%
 # meme adresse
 
 
-## 1. lecture des deux fichiers geocoder à la main + celui que j'avais fait avant ===============
+## 1. lecture des deux fichiers geocodées à la main + celui que j'avais fait avant ===============
 
 ### 1.1 lecture geocodage mains fait en premier cf. precision_geocodage.R ========================
-# j'ai touts reverifier en juillet
+# j'ai tout reverifier en juillet
 
 geocodage_evs_oli.shp <- sf::st_read("data/geocode_mains_Na.geojson") %>% 
     dplyr::select(adresse_id = Id_cart,
@@ -103,6 +103,11 @@ geocodage_evs_oli.shp <- sf::st_read("data/geocode_mains_Na.geojson") %>%
 geocodage_evs_oli.shp$precision <- as.numeric(geocodage_evs_oli.shp$precision) 
 
 # correction de l'erreur de date_end
+dist.dat <- read.csv("data/DistClean.csv", stringsAsFactors = FALSE) 
+NA_dist.dat <- geocodage_evs.shp[!geocodage_evs.shp$Id_cart %in%  dist.dat$ID_CARTO ,]
+NA_dist.dat$Date_end <- ymd(parse_date_time(NA_dist.dat$Date_end, orders = c("my", "dmy")))
+rm(dist.dat)
+
 correction <- NA_dist.dat[NA_dist.dat$Id_cart %in% geocodage_evs_oli.shp$adresse_id,c("Id_cart", "Date_end")]
 correction <- st_drop_geometry(correction)
 
@@ -381,7 +386,7 @@ centre_cluster_ligne <- aggregate(
         function(x){st_centroid(st_cast(st_combine(x),"LINESTRING"))} 
         )
 
-# match est utilise pour produire un vectuer d'indexation attribuant on va attribuer le poin
+# match est utilise pour produire un vecteur d'indexation attribuant on va attribuer le poin
 centre_cluster$geometry[centre_cluster$count == 2] <- st_sfc(centre_cluster_ligne$geometry)[match(centre_cluster$bigcluster[centre_cluster$count == 2],  centre_cluster_ligne$Group.1)]
 
 # on prepare pour un rajout
@@ -426,7 +431,7 @@ geocodage_adresse.shp[is.na(geocodage_adresse.shp$date_end),]
 
 # on va les corriger à la main mais c'est automatisable 
 # on attribue la date de depart à la date de fin precedente
-# c'est potable comme hypotheses mais pas fou si c'est une adresse temporaire
+# c'est potable comme hypothese mais pas fou si c'est une adresse temporaire
 # pb geocodage_adresse.shp$date_end[geocodage_adresse.shp$adresse_id == "08_0006_2"] ou je vois pas trop quoi faire à part dropper
 # dans le cas ou c'est la dernière residence on attribue le max de date_end
 # geocodage_adresse.shp[geocodage_adresse.shp$sujet_id  %in% geocodage_adresse.shp$sujet_id[is.na(geocodage_adresse.shp$date_end)],] %>% View()

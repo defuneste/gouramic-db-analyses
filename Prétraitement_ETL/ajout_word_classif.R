@@ -74,8 +74,10 @@ exemple.dat$filtre <- grepl(paste(exemple.dat$id_photo, collapse = "|"), fichier
 classifs <- sapply(sapply(exemple.dat$path[exemple.dat$filtre == TRUE], function(x){ strsplit(x, "/")})
                   , function(x) {x[6]})
 # on deplace 
-file.copy(from = exemple.dat$path[exemple.dat$filtre == TRUE],
-          to = paste0(ou_mettre_les_classifs, "/", classifs))
+# une sequence 
+sequence <- 1:162
+file.copy(from = exemple.dat$path[exemple.dat$filtre == TRUE][sequence],
+          to = paste0(ou_mettre_les_classifs, "/", classifs)[sequence])
 
 list.files("data/envoi/")
 
@@ -84,7 +86,8 @@ list.files("data/envoi/")
 # d'ou l'importance de verif les diff dans la partie I
 # le grepl corrige un peu en ne prenant que 
 
-file.copy(from = paste0("data/",fichier_world[grepl(paste(exemple.dat$id_photo, collapse = "|"), fichier_world)]),  
-          to = paste0(ou_mettre_les_classifs, "/", stringr::str_replace(classifs, pattern = "png$", "pgw"))
-          )
- 
+    file.copy(from = paste0("data/",fichier_world[grepl(paste(exemple.dat$id_photo, collapse = "|"), fichier_world)])[sequence],  
+              to = paste0(ou_mettre_les_classifs, "/", stringr::str_replace(classifs, pattern = "png$", "pgw"))[sequence]
+              )
+
+      
