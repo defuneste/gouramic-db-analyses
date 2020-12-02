@@ -1,0 +1,48 @@
+---
+title: "graph_analyse_publi"
+author: "Olivier Leroy"
+date: "12/2/2020"
+output: 
+    bookdown::html_document2:
+        theme: readable
+        toc: true
+        toc_float: true
+        number_sections: true
+        toc_depth: 3
+        fig_caption: true
+        keep_md: true
+        code_folding: hide
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = "/home/defuneste/Documents/recherche/gouramic/gouramic-db-analyses/")
+library(ggplot2)
+library(sf)
+library(stringr)
+library(dplyr)
+library(lubridate)
+```
+
+# Résultats des deux géocodages
+
+```{r lodabanr}
+geocodage_clbv2.shp <- sf::st_read("data/sortie_15_04.shp" , stringsAsFactors = FALSE)
+#correction formatage
+geocodage_evs.shp$Date_birth <- as.Date(geocodage_evs.shp$Date_birth, origin = "1899-12-30")
+geocodage_evs.shp$Date_start <- as.Date(geocodage_evs.shp$Date_start, origin = "1899-12-30")
+geocodage_evs.shp$Date_end <- as.Date(geocodage_evs.shp$Date_end, origin = "1899-12-30")
+
+# library(rcartocolor)
+# display_carto_all(colorblind_friendly = TRUE)
+```
+```{r}
+geocodage_clbv2.shp  %>% 
+    ggplot(aes(x = Loc_name, fill = Loc_name)) +
+    geom_bar() +
+    ylab("nbr") +
+    theme_bw() +
+    scale_color_brewer(palette="Safe") # à verifier
+## ID_CARTO
+```
+

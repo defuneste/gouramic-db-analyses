@@ -35,106 +35,10 @@ table(dist.dat$Preci_CLB[dist.dat$Dist_m > 5], dist.dat$PreciBan[dist.dat$Dist_m
     
 sum(table(dist.dat$Preci_CLB[dist.dat$Dist_m > 5], dist.dat$PreciBan[dist.dat$Dist_m > 5]))
 
-## 2 Export pour Remi ================================
-# l'idée est de prendre ceux dont la precision entre les deux geocodage est proche 
-# avec une precision de localisation et d'en garder l'identifiant
-# on utilisera cette identifiant filtrer un tableau contenant lat/long en wgs84 + date en année
-
-filtre_geocode <- dist.dat[dist.dat$PreciBan == dist.dat$Preci_CLB,]
-# je ne suis pour prendre que voie et point_adresse pour le moment 
-filtre_geocode <- filtre_geocode[!filtre_geocode$PreciBan == "4_LieuDitHabit",]
-
-filtre_geocode_proche <- filtre_geocode[filtre_geocode$Dist_m <= 5,]
-
-# il y a st coordinates mais j'aime bien sfc_as_cols
-# pris ici : https://github.com/r-spatial/sf/issues/231
-
-sfc_as_cols <- function(x, names = c("x","y")) {
-    stopifnot(inherits(x,"sf") && inherits(sf::st_geometry(x),"sfc_POINT")) ## un stop si ps un objet sf avec des points
-    ret <- sf::st_coordinates(x)  # coordinates retourne une marice X / Y
-    ret <- tibble::as_tibble(ret) # passage en tibble
-    stopifnot(length(names) == ncol(ret)) # stop si on essaie de mettre autre chose que deux noms
-    x <- x[ , !names(x) %in% names]  # ici c'est un peu brute car on va supprimer des colonnes qui aurait les noms donnés
-    ret <- setNames(ret,names) # on renome
-    dplyr::bind_cols(x,ret) # on bind sur les cols
-}
-
-## on vire les NA temporaire !!!!
-
-geocodage_clbv2.shp <- geocodage_clbv2.shp[!is.na(geocodage_clbv2.shp$date_start),]
-geocodage_clbv2.shp <- geocodage_clbv2.shp[!is.na(geocodage_clbv2.shp$date_end_a),]
-
-geocodage_clbv2_clean.shp  <- geocodage_clbv2.shp   %>% 
-    select(ID_CARTO,
-           date_debut = date_start,
-           date_fin = date_end_a) %>% 
-    filter(ID_CARTO %in% filtre_geocode_proche$ID_CARTO) %>% 
-    mutate(interval = interval(date_debut,date_fin)) %>% 
-    st_transform(4326) %>% 
-    sfc_as_cols() %>% 
-    st_transform(2154) %>% 
-    st_buffer(2000) %>% 
-    st_transform(4326) %>% 
-    dplyr::select(ID_CARTO, date_debut, date_fin, interval,  x , y, geometry) %>% 
-    arrange(ID_CARTO, date_debut)
-
-
-write.table(geocodage_clbv2_clean.shp , 
-            "data/clean_adresse.csv", 
-            sep = ";",
-            quote = FALSE,
-            row.names = FALSE,
-            col.names=TRUE) 
-
-
-## Cela semble plus simple d'avoir une ligne pour chaque année
-
-geocodage_clbv2_clean.shp$date_debut <- year(geocodage_clbv2_clean.shp$date_debut)
-geocodage_clbv2_clean.shp$date_fin <- year(geocodage_clbv2_clean.shp$date_fin)
-
-# ## un test léger sans la geometrie
-# dat <- geocodage_clbv2_clean.shp %>% 
-#             st_drop_geometry()
-# 
-# dat %>%
-#     nest(date_debut, date_fin) %>%
-#     mutate(data = map(data, ~seq(unique(.x$date_debut), unique(.x$date_fin), 1))) %>%
-#     unnest(data)
-
-geocodage_clbv2_clean_dupli.shp <-  geocodage_clbv2_clean.shp %>% 
-                                        st_drop_geometry() %>% 
-                                        nest(date_debut, date_fin) %>% 
-                                        mutate(data = map(data, ~seq(unique(.x$date_debut), unique(.x$date_fin), 1))) %>% 
-                                        unnest(data) %>% 
-                                        st_as_sf(coords = c("x", "y")) %>% 
-                                        select(-interval) %>%  
-                                        st_set_crs(st_crs("EPSG:4326")) %>% 
-                                        sfc_as_cols() %>% 
-                                        st_transform(2154) %>% 
-                                        st_buffer(1500) %>% 
-                                        st_transform(4326) %>% 
-                                        select(ID_CARTO, date_y = data, x, y, geometry)
-
-
-# export en differents formats
-write.table(geocodage_clbv2_clean_dupli.shp, 
-            "data/clean_adresse_dupli.csv", 
-            sep = ";",
-            quote = FALSE,
-            row.names = FALSE,
-            col.names=TRUE) 
-
-st_write(geocodage_clbv2_clean_dupli.shp, dsn = "clean_adresse_dupli.geojson")
-
-st_write(geocodage_clbv2_clean_dupli.shp, dsn = "data/clean_adresse_dupli.shp")
-
-
-# zip -e clean_adresse_dupli.zip clean_adresse_dupli.csv
-
-## 3- Exports pour Matthieu et Olivier avec les adresses à identifier ================
+## 2 - Exports pour Matthieu et Olivier avec les adresses à identifier ================
 # objectif ici est d'avoir les adresses à verifier 
 
-# 3.1 on va commencer par les NA ==========
+# 2.1 on va commencer par les NA ==========
 
 # tout ce qui est dans geocodage EVS mais n'a pas de distance.
 NA_dist.dat <- geocodage_evs.shp[!geocodage_evs.shp$Id_cart %in%  dist.dat$ID_CARTO ,]
