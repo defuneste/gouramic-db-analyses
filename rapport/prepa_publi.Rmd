@@ -26,9 +26,17 @@ library(lubridate)
 
 # Résultats des deux géocodages
 
-```{r lodabanr}
+## chargements des données
+
+```{r looad}
+#CLB
 geocodage_clbv2.shp <- sf::st_read("data/sortie_15_04.shp" , stringsAsFactors = FALSE)
 #correction formatage
+geocodage_clbv2.shp$date_start <- parse_date_time(geocodage_clbv2.shp$date_start, orders = c("my", "dmy"))
+geocodage_clbv2.shp$date_end_a <- parse_date_time(geocodage_clbv2.shp$date_end_a, orders = c("my", "dmy"))
+
+# fichier de geocodage EVS
+geocodage_evs.shp <- sf::st_read("data/geocodev2.geojson", stringsAsFactors = FALSE)
 geocodage_evs.shp$Date_birth <- as.Date(geocodage_evs.shp$Date_birth, origin = "1899-12-30")
 geocodage_evs.shp$Date_start <- as.Date(geocodage_evs.shp$Date_start, origin = "1899-12-30")
 geocodage_evs.shp$Date_end <- as.Date(geocodage_evs.shp$Date_end, origin = "1899-12-30")
@@ -36,6 +44,19 @@ geocodage_evs.shp$Date_end <- as.Date(geocodage_evs.shp$Date_end, origin = "1899
 # library(rcartocolor)
 # display_carto_all(colorblind_friendly = TRUE)
 ```
+## Préparation des données
+
+```{r prepa}
+geocodage_clbv2.shp <- geocodage_clbv2.shp %>% 
+    dplyr::select(ID_CARTO, precision = Loc_name)
+
+
+geocodage_evs.shp <- geocodage_evs.shp %>% 
+    dplyr::select(ID_CARTO = Id_cart, precision = result_type )
+
+```
+
+
 ```{r}
 geocodage_clbv2.shp  %>% 
     ggplot(aes(x = Loc_name, fill = Loc_name)) +
