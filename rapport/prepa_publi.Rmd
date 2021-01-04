@@ -52,18 +52,43 @@ geocodage_clbv2.shp <- geocodage_clbv2.shp %>%
 
 
 geocodage_evs.shp <- geocodage_evs.shp %>% 
-    dplyr::select(ID_CARTO = Id_cart, precision = result_type )
+    dplyr::select(ID_CARTO = Id_cart, precision = result_type ) %>% 
+    st_transform(2154)
 
 ```
 
+## resultats geocodage
 
 ```{r}
 geocodage_clbv2.shp  %>% 
-    ggplot(aes(x = Loc_name, fill = Loc_name)) +
+    ggplot(aes(x = precision, fill = precision)) +
     geom_bar() +
     ylab("nbr") +
-    theme_bw() +
-    scale_color_brewer(palette="Safe") # à verifier
+    theme_bw() # +
+    # scale_color_brewer(palette="safe") # à verifier c'est pour les color blinds 
 ## ID_CARTO
+```
+
+```{r}
+table(geocodage_clbv2.shp$precision, useNA = "ifany")/sum(table(geocodage_clbv2.shp$precision, useNA = "ifany"))*100
+sum((table(geocodage_clbv2.shp$precision, useNA = "ifany")/sum(table(geocodage_clbv2.shp$precision, useNA = "ifany"))*100)[1:4])
+
+```
+
+```{r}
+table(geocodage_evs.shp$precision, useNA = "ifany")/sum(table(geocodage_evs.shp$precision, useNA = "ifany"))*100
+```
+
+## distance 
+
+```{r}
+# on vire les NA ou on a pas de loc
+geocodage_clbv2.shp <- geocodage_clbv2.shp[!is.na(geocodage_clbv2.shp$precision),] 
+geocodage_evs.shp <- geocodage_evs.shp[!is.na(geocodage_evs.shp$precision),]
+geocodage_evs.shp  <- geocodage_evs.shp[!st_is_empty(geocodage_evs.shp$geometry),]
+## on ne va garder que ceux présent dans le codage ESRI
+
+
+
 ```
 

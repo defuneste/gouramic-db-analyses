@@ -386,20 +386,39 @@ centre_cluster_ligne <- aggregate(
         function(x){st_centroid(st_cast(st_combine(x),"LINESTRING"))} 
         )
 
-# match est utilise pour produire un vecteur d'indexation attribuant on va attribuer le poin
+# match est utilise pour produire un vecteur d'indexation attribuant on va attribuer le point
 centre_cluster$geometry[centre_cluster$count == 2] <- st_sfc(centre_cluster_ligne$geometry)[match(centre_cluster$bigcluster[centre_cluster$count == 2],  centre_cluster_ligne$Group.1)]
 
 # on prepare pour un rajout
+transit <- data.frame(
+    sort(unique(centre_cluster$bigcluster)),
+    1:length(unique(centre_cluster$bigcluster))
+)
+names(transit) <- c("bigcluster", "addresse_passage")
+
+centre_cluster <- centre_cluster %>% left_join(transit,  by = c("bigcluster" = "bigcluster"))
+centre_cluster <-rename(centre_cluster, adresse_clb = adresse_id)
+
+# un bout de la futur table de passage
+transit_passage <- centre_cluster %>% 
+                        st_drop_geometry() %>% 
+                        dplyr::select(addresse_passage, adresse_clb)  #%>%
+                        #dplyr::mutate(adresse_id = 1:length(addresse_passage))
+
+names(transit_passage) <- c("adresse_id", "adresse_passage")
+
+length(unique(geocodage_adresse.shp$adresse_id))
+
 centre_cluster_clean <- centre_cluster %>% 
-        group_by(bigcluster) %>% 
-        summarize(adresse_id = first(adresse_id),
+        group_by(addresse_id) %>% 
+        summarize(adresse_clb = first(adresse_id),
                   sujet_id = first(sujet_id),
                   precision = first(precision),
-                  source_codage = first(source_codage)) %>% 
-        select(-bigcluster)
+                  source_codage = first(source_codage)) 
 
 # il faut retirer les clusters et preparer le jeux de données
 # c'est un peu lourd en computation pour ce que cela fait ...
+# il y a l'ajout puis la mise en forme
 table_adresse.shp <- geocodage_adresse.shp[!geocodage_adresse.shp$adresse_id %in% centre_cluster$adresse_id,] %>% 
     select(-c(date_start, date_end, commune, adresse, cp, info_sup,  nb_cluster, nb_bigcluster)) %>% 
     bind_rows(centre_cluster_clean) %>% 
@@ -407,9 +426,9 @@ table_adresse.shp <- geocodage_adresse.shp[!geocodage_adresse.shp$adresse_id %in
     summarize(sujet_id = first(sujet_id),
               precision = first(precision),
               source_codage = first(source_codage)) %>% 
-    mutate(adresse_clb = adresse_id) %>% 
-    mutate(adresse_id = 1:length(adresse_id))  %>% 
-    select(adresse_id, sujet_id, adresse_clb, precision, source_codage)
+    dplyr::mutate(adresse_clb = adresse_id) %>% 
+    dplyr::mutate(adresse_id = 1:length(adresse_id))  %>% 
+    dplyr::select(adresse_id, sujet_id, adresse_clb, precision, source_codage)
 
 # il y a des id de sujet avec  des fautes de frappes à corriger
 # oui j'ai verifier 08_006X
