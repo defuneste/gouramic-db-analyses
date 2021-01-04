@@ -88,7 +88,16 @@ geocodage_evs.shp <- geocodage_evs.shp[!is.na(geocodage_evs.shp$precision),]
 geocodage_evs.shp  <- geocodage_evs.shp[!st_is_empty(geocodage_evs.shp$geometry),]
 ## on ne va garder que ceux présent dans le codage ESRI
 
+bob <- rbind(geocodage_clbv2.shp[geocodage_clbv2.shp$ID_CARTO %in% geocodage_evs.shp$ID_CARTO,],
+             geocodage_evs.shp)
 
+join_adresse <- bob %>% group_by(ID_CARTO) %>%  summarize(test = first(precision)) %>% st_cast("LINESTRING")
 
+join_adresse$distance <- st_length(join_adresse)
+boxplot(join_adresse$distance)
+
+join_adresse[as.numeric(join_adresse$distance) > 5,]
+
+st_write(join_adresse,  "data/verif/distance.shp")
 ```
 
