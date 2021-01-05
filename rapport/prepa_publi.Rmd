@@ -77,6 +77,8 @@ sum((table(geocodage_clbv2.shp$precision, useNA = "ifany")/sum(table(geocodage_c
 
 ```{r}
 table(geocodage_evs.shp$precision, useNA = "ifany")/sum(table(geocodage_evs.shp$precision, useNA = "ifany"))*100
+table(geocodage_evs.shp$precision, useNA = "ifany")
+geocodage_evs.shp[is.na(geocodage_evs.shp$precision),]
 ```
 
 ## distance 
@@ -109,8 +111,7 @@ join_adresse[as.numeric(join_adresse$distance) > 5,]
 
 
 ```{r}
-table(join_adresse$preci_clb, join_adresse$preci_evs)
-
+table(join_adresse$preci_clb, join_adresse$preci_evs, useNA = "ifany")
 
 ```
 
