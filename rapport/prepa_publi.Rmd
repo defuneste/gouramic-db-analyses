@@ -91,13 +91,26 @@ geocodage_evs.shp  <- geocodage_evs.shp[!st_is_empty(geocodage_evs.shp$geometry)
 bob <- rbind(geocodage_clbv2.shp[geocodage_clbv2.shp$ID_CARTO %in% geocodage_evs.shp$ID_CARTO,],
              geocodage_evs.shp)
 
-join_adresse <- bob %>% group_by(ID_CARTO) %>%  summarize(test = first(precision)) %>% st_cast("LINESTRING")
+join_adresse <- bob %>% 
+                    group_by(ID_CARTO) %>%  
+                    summarize(preci_clb = first(precision),
+                              preci_evs = nth(precision, 2)) %>% 
+                    st_cast("LINESTRING")
 
 join_adresse$distance <- st_length(join_adresse)
-boxplot(join_adresse$distance)
+boxplot(log10(join_adresse$distance))
 
 join_adresse[as.numeric(join_adresse$distance) > 5,]
 
-st_write(join_adresse,  "data/verif/distance.shp")
+# st_write(join_adresse,  "data/verif/distance.shp")
+# st_write(geocodage_clbv2.shp, "data/verif/clb.shp")
+# st_write(geocodage_evs.shp, "data/verif/evs.shp")
+```
+
+
+```{r}
+table(join_adresse$preci_clb, join_adresse$preci_evs)
+
+
 ```
 
