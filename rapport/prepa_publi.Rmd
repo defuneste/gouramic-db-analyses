@@ -104,7 +104,7 @@ boxplot(log10(join_adresse$distance))
 
 join_adresse[as.numeric(join_adresse$distance) > 5,]
 
-# st_write(join_adresse,  "data/verif/distance.shp")
+# st_write(join_adresse,  "data/verif/distance.geojson")
 # st_write(geocodage_clbv2.shp, "data/verif/clb.shp")
 # st_write(geocodage_evs.shp, "data/verif/evs.shp")
 ```

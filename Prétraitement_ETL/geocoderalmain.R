@@ -1,6 +1,5 @@
-## comparer via les distances necessites davoir des distances
-# verif des cas sans distances 
-# verif des + 5 m !
+# ce qui a été codé à la main ou ne pourra pas être ameliorer 
+# avant la rédaction de la publi
 
 pkgs <-  c("dplyr", "lubridate",  "sf")
 inst <- lapply(pkgs, library, character.only = TRUE)
