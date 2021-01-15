@@ -1,15 +1,16 @@
-# verif des distances entre les deux geocodages 
+
+
+# données deja geocodées# verif des distances entre les deux geocodages 
 
 library(sf)
 
 # rapport/prepa_publi.Rmd
 
 adresse <- sf::st_read("data/verif/distance.geojson")
-adresse_filtre <- sf::st_drop_geometry( adresse) 
-
+adresse_filtre <- sf::st_drop_geometry(adresse) 
 adresse_filtre$distance <-as.numeric(adresse_filtre$distance)
 
-# données deja geocodées
+# sum(adresse_filtre$distance > 5)
 
 geocoder_main <- sf::st_read("data/geocodage_main_total.geojson")
 #st_write(geocoder_main, "data/verif/deja_geocoder.geojson")
