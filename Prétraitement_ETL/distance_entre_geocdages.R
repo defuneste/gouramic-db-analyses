@@ -33,7 +33,7 @@ adresse_complement_distance$geocodage_main <- NA
 adresse_complement_distance <- adresse_complement_distance[!adresse_complement_distance$ID_CARTO %in% geocoder_main$adresse_id,]
 
 adresse_matthieu <- adresse_complement_distance[1:(length(adresse_complement_distance$ID_CARTO)/2),]
-st_write(adresse_matthieu, "data/verif/adresse_matthieu.geojson" )
+#st_write(adresse_matthieu, "data/verif/adresse_matthieu.geojson" )
 
 adresse_olivier <- adresse_complement_distance[(length(adresse_complement_distance$ID_CARTO)/2):length(adresse_complement_distance$ID_CARTO),]
-st_write(adresse_olivier, "data/verif/adresse_olivier.geojson")
+#st_write(adresse_olivier, "data/verif/adresse_olivier.geojson")
