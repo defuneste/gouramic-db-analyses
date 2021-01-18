@@ -126,3 +126,11 @@ avec_distance <- st_cast(avec_distance, "LINESTRING")
 avec_distance$distance <- st_length(avec_distance)
 
 summary(avec_distance$distance)
+
+aggregate(avec_distance$distance, by = list(avec_distance$preci_clb), sum)
+aggregate(avec_distance$distance, by = list(avec_distance$preci_clb), median)
+aggregate(avec_distance$distance, by = list(avec_distance$preci_clb), mean)
+table(avec_distance$preci_clb)
+
+
+sum(avec_distance$distance)
