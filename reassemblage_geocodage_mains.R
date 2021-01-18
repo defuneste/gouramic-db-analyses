@@ -62,4 +62,38 @@ ce_qui_manque.shp <- left_join(ce_qui_manque, adresse_filtre, by = c("adresse_id
 
 verif_ecartv2.shp <- rbind(verif_ecart.shp, ce_qui_manque.shp)
 
+rm(ce_qui_manque, ce_qui_manque.shp, deja_fait, geocoder_main, verif_ecart.shp)
+
+
+#### mesure de l'efficacité du geocodage à la main 
+# distance 
+# changement de classe
+# pe ensuite en faire un script propre
+
+
+# changement de classe 
+# il faut corriger le preci_clb pour ne prendre que le premier char et pe passer en facteur 
+
+dim(adresse_filtre[adresse_filtre$distance > 5,])
+from <- adresse_filtre[adresse_filtre$distance > 5,]
+
+verif_ecartv2.shp$preci_clb <-  substr(verif_ecartv2.shp$preci_clb, 1, 1)
+# correction d'un street qui devrait être 3
+verif_ecartv2.shp$preci_clb[verif_ecartv2.shp$preci_clb  =="s"] <- "3" 
+
+to <- verif_ecartv2.shp
+
+table(verif_ecartv2.shp$preci_clb)
+
+# on va dropper la geometrie et faire une jointure entre les deux jeu de données puis faire une matrice 
+
+from_to <- to %>% 
+                st_drop_geometry() %>% 
+                 left_join(from, by = c("ID_CARTO" = "ID_CARTO"),
+                           suffix = c(".to", ".from"))
+
+# from_to$preci_clb.from <- substr(from_to$preci_clb.from, 1, 1)
+
+table(from_to$preci_clb.from, from_to$preci_clb.to)
+                                  
 
