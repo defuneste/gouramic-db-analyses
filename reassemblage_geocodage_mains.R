@@ -71,7 +71,7 @@ rm(ce_qui_manque, ce_qui_manque.shp, deja_fait, geocoder_main, verif_ecart.shp)
 # pe ensuite en faire un script propre
 
 
-# changement de classe 
+########## Changement de classe ======================== 
 # il faut corriger le preci_clb pour ne prendre que le premier char et pe passer en facteur 
 
 dim(adresse_filtre[adresse_filtre$distance > 5,])
@@ -89,11 +89,40 @@ table(verif_ecartv2.shp$preci_clb)
 
 from_to <- to %>% 
                 st_drop_geometry() %>% 
-                 left_join(from, by = c("ID_CARTO" = "ID_CARTO"),
+                left_join(from, by = c("ID_CARTO" = "ID_CARTO"),
                            suffix = c(".to", ".from"))
 
 # from_to$preci_clb.from <- substr(from_to$preci_clb.from, 1, 1)
 
 table(from_to$preci_clb.from, from_to$preci_clb.to)
-                                  
 
+
+####### Distance / precision gagnée spatialement 
+# pour la distance il y a plusieurs options 
+# le géocodage ESRI, celui banR
+# un point au milieu 
+# j'ai pris l'option 1
+# on peut aussi prendre le type de lieu d'arriver ou de départ, j'ai pris arrivé
+
+geocodage_clb.shp <- sf::st_read("data/sortie_15_04.shp" , stringsAsFactors = FALSE)
+
+geocodage_clb_simp.shp <- geocodage_clb.shp[,c("ID_CARTO", "Loc_name")]
+names(geocodage_clb_simp.shp) <- c("ID_CARTO", "preci_clb", "geometry")
+
+geocodage_clb_simp.shp <- geocodage_clb_simp.shp[geocodage_clb_simp.shp$ID_CARTO %in% verif_ecartv2.shp$ID_CARTO,]
+
+verif_simp.shp <- verif_ecartv2.shp[, c("ID_CARTO", "preci_clb")]
+
+band_of_bistance  <- rbind(verif_simp.shp, geocodage_clb_simp.shp)
+
+compare_distance <- aggregate(band_of_bistance, by = list(band_of_bistance$ID_CARTO), first)
+
+sans_distance <- compare_distance[st_is(compare_distance, "POINT"),]
+
+sans_distance$distance <- 0 
+
+avec_distance <- compare_distance[!st_is(compare_distance, "POINT"),]
+avec_distance <- st_cast(avec_distance, "LINESTRING")
+avec_distance$distance <- st_length(avec_distance)
+
+summary(avec_distance$distance)
