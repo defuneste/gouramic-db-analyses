@@ -38,3 +38,18 @@ adresse_matthieu <- adresse_complement_distance[1:(length(adresse_complement_dis
 
 adresse_olivier <- adresse_complement_distance[(length(adresse_complement_distance$ID_CARTO)/2):length(adresse_complement_distance$ID_CARTO),]
 #st_write(adresse_olivier, "data/verif/adresse_olivier.geojson")
+
+
+#### le reste 
+
+adresse_filtre$preci_clb <-  substr(adresse_filtre$preci_clb , 1, 1)
+# table(substr(adresse_filtre$preci_clb , 1, 1))
+
+table(adresse_filtre$preci_evs, useNA = "ifany")
+
+adresse_filtre$preci_evs[adresse_filtre$preci_evs =="housenumber"] <- "1"
+adresse_filtre$preci_evs[adresse_filtre$preci_evs =="street"] <- "3"
+adresse_filtre$preci_evs[adresse_filtre$preci_evs =="locality"] <- "4"
+adresse_filtre$preci_evs[adresse_filtre$preci_evs =="municipality"] <- "6"
+
+adresse_filtre_proche 
