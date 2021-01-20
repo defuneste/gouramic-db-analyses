@@ -134,3 +134,7 @@ table(avec_distance$preci_clb)
 
 
 sum(avec_distance$distance)
+
+### rural urbain 
+# le chargement de communes c'est fait ailleurs 
+

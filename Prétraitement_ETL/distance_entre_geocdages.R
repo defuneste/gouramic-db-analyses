@@ -52,4 +52,21 @@ adresse_filtre$preci_evs[adresse_filtre$preci_evs =="street"] <- "3"
 adresse_filtre$preci_evs[adresse_filtre$preci_evs =="locality"] <- "4"
 adresse_filtre$preci_evs[adresse_filtre$preci_evs =="municipality"] <- "6"
 
-adresse_filtre_proche 
+adresse_filtre_proche <- adresse_filtre[adresse_filtre$distance <= 5 , ]
+
+table(adresse_filtre_proche$preci_clb, adresse_filtre_proche$preci_evs)
+
+
+##### rural / urbain 
+
+communes.shp <- sf::st_read("data/commune.shp")
+
+adresse$distance <- as.numeric(adresse$distance)
+
+adresse_commune.shp <- st_join(
+                        adresse, 
+                        st_transform(communes.shp[,c("TYPE_CO", "insee")], 2154))
+
+adresse_commune_proche.shp <- adresse_commune.shp[adresse_commune.shp$distance <= 5,]
+
+table(adresse_commune_proche.shp$TYPE_CO)
