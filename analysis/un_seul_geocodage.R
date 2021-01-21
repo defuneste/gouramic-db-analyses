@@ -22,3 +22,19 @@ geocodage_clb.shp <- geocodage_clb.shp %>%
 de_cote.shp <- geocodage_clb.shp[!geocodage_clb.shp$ID_CARTO %in% adresse$ID_CARTO,]
 
 de_cote.shp
+
+table(de_cote.shp$Loc_name, useNA = "ifany")
+
+# on vire les Na et on regarde la répartition rural urbain
+
+de_cote.shp <- de_cote.shp[!is.na(de_cote.shp$Loc_name),]
+
+# on reprend le shape des communes avec l'info rural-urbain-peri
+communes.shp <- st_read("data/commune.shp")
+
+# rajout du type de commune par adresse !!! attention c'est le type de commune en 2019
+adresse_commune.shp <- st_join(de_cote.shp,
+                               st_transform(communes.shp[,c("TYPE_CO", "insee")], 2154))
+
+table(adresse_commune.shp$Loc_name, adresse_commune.shp$TYPE_CO)
+# st_write(de_cote.shp, "data/verif/de_cote.geojson")
