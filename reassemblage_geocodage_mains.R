@@ -138,3 +138,39 @@ sum(avec_distance$distance)
 ### rural urbain 
 # le chargement de communes c'est fait ailleurs 
 
+# on reprend le shape des communes avec l'info rural-urbain-peri
+communes.shp <- st_read("data/commune.shp")
+
+# il faut reprendre coords verif et pas les lignes
+
+avec_distance.dat <- st_drop_geometry(avec_distance) 
+
+avec_distance.dat <- verif_simp.shp %>% left_join(avec_distance.dat[,c("ID_CARTO", "distance")], by = c("ID_CARTO" = "ID_CARTO"))
+avec_distance.dat$distance <- as.numeric(avec_distance.dat$distance)
+avec_distance.dat$distance[is.na(avec_distance.dat$distance)] <- 0
+
+# rajout du type de commune par adresse !!! attention c'est le type de commune en 2019
+adresse_commune.shp <- st_join(avec_distance.dat,
+                               st_transform(communes.shp[,c("TYPE_CO", "insee")], 2154))
+
+adresse_commune <- st_drop_geometry(adresse_commune.shp)
+adresse_commune$distance <- as.numeric(adresse_commune$distance)
+
+
+distance_tab <- aggregate(adresse_commune$distance, by = list(adresse_commune$TYPE_CO, adresse_commune$preci_clb), length)
+
+
+
+names(distance_tab) <- c("Type_co", "Preci_clb", "nombre")
+
+distance_tab$total <- aggregate(adresse_commune$distance, by = list(adresse_commune$TYPE_CO, adresse_commune$preci_clb), sum)$x
+                              
+distance_tab$median <- aggregate(adresse_commune$distance, by = list(adresse_commune$TYPE_CO, adresse_commune$preci_clb), median)$x
+
+distance_tab$mean <- aggregate(adresse_commune$distance, by = list(adresse_commune$TYPE_CO, adresse_commune$preci_clb), mean)$x
+
+distance_tab$IQR <- aggregate(adresse_commune$distance, by = list(adresse_commune$TYPE_CO, adresse_commune$preci_clb), IQR)$x
+
+sum(distance_tab$total)  
+
+openxlsx::write.xlsx(distance_tab, "data/distance_rurbain.xls")
