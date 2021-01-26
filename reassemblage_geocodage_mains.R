@@ -156,6 +156,7 @@ adresse_commune.shp <- st_join(avec_distance.dat,
 adresse_commune <- st_drop_geometry(adresse_commune.shp)
 adresse_commune$distance <- as.numeric(adresse_commune$distance)
 
+adresse_commune <- adresse_commune[adresse_commune$distance != 0,]
 
 distance_tab <- aggregate(adresse_commune$distance, by = list(adresse_commune$TYPE_CO, adresse_commune$preci_clb), length)
 
@@ -173,4 +174,4 @@ distance_tab$IQR <- aggregate(adresse_commune$distance, by = list(adresse_commun
 
 sum(distance_tab$total)  
 
-openxlsx::write.xlsx(distance_tab, "data/distance_rurbain.xls")
+openxlsx::write.xlsx(distance_tab, "data/distance_rurbain_erreur.xls")
