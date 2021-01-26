@@ -175,3 +175,42 @@ distance_tab$IQR <- aggregate(adresse_commune$distance, by = list(adresse_commun
 sum(distance_tab$total)  
 
 openxlsx::write.xlsx(distance_tab, "data/distance_rurbain_erreur.xls")
+
+
+### on regarde avec le temps 
+# il faut ajouter les precisions 
+
+geocode_annee.shp <- st_drop_geometry(geocode_annee.shp)
+
+# on est sur 4180, le fait plutot sur l'ensemble ?
+distance_année.shp <- left_join(avec_distance.dat, geocode_annee.shp, by = c("ID_CARTO" = "ID_CARTO")) 
+# rajoute on rural urbain
+distance_année.shp <- st_join(distance_année.shp,
+                               st_transform(communes.shp[,c("TYPE_CO", "insee")], 2154))
+
+
+# après du base pkoi pas du tidyverse
+distance_année <- st_drop_geometry(distance_année.shp) %>% 
+                            group_by(preci_clb) %>% 
+                            summarize(moy_annee = mean(annee , na.rm = T),
+                                      med_annee = median(annee, na.rm = T),
+                                      IQR_annee = IQR(annee, na.rm = T),
+                                      sd_annee = sd(annee, na.rm = T)
+                                      )
+
+library(ggplot2)
+# sur les 4180 de matrice de distance là encore pe pas l'ensemble le plus pertinent
+distance_année.shp %>% 
+            st_drop_geometry() %>%
+            ggplot(aes(x = annee, y = distance, col = TYPE_CO)) +
+            geom_point() + 
+            ylim(c(0,10000))
+
+# sur les 1177 avec erreurs
+distance_année.shp %>% 
+    filter(distance != 0) %>% 
+    st_drop_geometry() %>%
+    ggplot(aes(x = annee, y = distance, col = TYPE_CO)) +
+    geom_point() + 
+    ylim(c(0,10000))
+

@@ -27,5 +27,3 @@ geocodage_clb.shp$annee <- round((geocodage_clb.shp$date_start + geocodage_clb.s
 geocode_annee.shp <-  geocodage_clb.shp[,c("ID_CARTO", "annee")]
 
 rm(geocodage_clb.shp)
-
-hist(geocodage_clb.shp$annee)
