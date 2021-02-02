@@ -31,36 +31,25 @@ geocodage_clbv2.shp <- sf::st_read("data/sortie_15_04.shp" , stringsAsFactors = 
 geocodage_clbv2.shp$date_start <- parse_date_time(geocodage_clbv2.shp$date_start, orders = c("my", "dmy"))
 geocodage_clbv2.shp$date_end_a <- parse_date_time(geocodage_clbv2.shp$date_end_a, orders = c("my", "dmy"))
 
+geocodage_clbv2.shp <- geocodage_clbv2.shp %>% 
+    dplyr::select(ID_CARTO, Loc_name, Commune, CP, nb_rue_p, rue_p, compl_add_, pt_remarq_, lieudit_p ) %>% 
+    tidyr::unite("Adresse", nb_rue_p, rue_p, sep = " ",  na.rm = TRUE) %>% 
+    tidyr::unite("Info_sup", lieudit_p, compl_add_, pt_remarq_, na.rm = TRUE)
+
 # fichier de geocodage EVS
 geocodage_evs.shp <- sf::st_read("data/geocodev2.geojson", stringsAsFactors = FALSE)
 geocodage_evs.shp$Date_birth <- as.Date(geocodage_evs.shp$Date_birth, origin = "1899-12-30")
 geocodage_evs.shp$Date_start <- as.Date(geocodage_evs.shp$Date_start, origin = "1899-12-30")
 geocodage_evs.shp$Date_end <- as.Date(geocodage_evs.shp$Date_end, origin = "1899-12-30")
 
-geocodage_clbv2.shp <- geocodage_clbv2.shp %>% 
-    dplyr::select(ID_CARTO, precision = Loc_name)
-
 geocodage_clbv2.shp <- geocodage_clbv2.shp[geocodage_clbv2.shp$ID_CARTO %in% a_verif$ID_CARTO,]
 
 geocodage_evs.shp <- geocodage_evs.shp %>% 
     dplyr::select(ID_CARTO = Id_cart, precision = result_type ) %>% 
-    st_transform(2154)
+    st_drop_geometry()
 
 geocodage_evs.shp <- geocodage_evs.shp[geocodage_evs.shp$ID_CARTO %in% a_verif$ID_CARTO,]
 
-bob <- rbind(geocodage_clbv2.shp[geocodage_clbv2.shp$ID_CARTO %in% geocodage_evs.shp$ID_CARTO,],
-             geocodage_evs.shp)
-
-join_adresse <- bob %>% 
-    group_by(ID_CARTO) %>%  
-    summarize(preci_clb = first(precision),
-              preci_evs = nth(precision, 2)) %>% 
-    st_cast("LINESTRING")
-
-join_adresse$distance <- st_length(join_adresse)
-
-# a netoyer un peu !
-
-join_adresse <- left_join(join_adresse, adresse_filtre, by = c("ID_CARTO" = "ID_CARTO"))
+join_adresse <- left_join(geocodage_clbv2.shp, geocodage_evs.shp, by = c("ID_CARTO" = "ID_CARTO"))
 
 st_write(join_adresse, "data/verif/preci_diff.geojson")
