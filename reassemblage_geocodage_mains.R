@@ -68,3 +68,19 @@ verif_ecartv2.shp$preci_clb[verif_ecartv2.shp$preci_clb  =="s"] <- "3"
 
 rm(ce_qui_manque, ce_qui_manque.shp, deja_fait, geocoder_main, verif_ecart.shp)
 
+### rajout des corrections de precisions differentes 
+
+preci_diff <- st_read("data/verif/preci_diff_oli.geojson") %>% 
+                arrange(ID_CARTO) %>% 
+                rename(preci_clb = Loc_name)
+
+preci_diff$geocodeur <- "olivier"
+preci_diff$preci_evs <- NA
+preci_diff$geocodage_main <- NA
+preci_diff$distance <- adresse_filtre$distance[adresse_filtre$ID_CARTO %in% preci_diff$ID_CARTO]
+
+names(verif_ecartv2.shp)[!names(verif_ecartv2.shp) %in% names(preci_diff)]
+
+preci_diff <- preci_diff[,names(verif_ecartv2.shp)]
+
+verif_ecartv3.shp <- rbind(verif_ecartv2.shp, preci_diff)
