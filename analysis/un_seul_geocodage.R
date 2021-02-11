@@ -21,9 +21,7 @@ geocodage_clb.shp <- geocodage_clb.shp %>%
 
 de_cote.shp <- geocodage_clb.shp[!geocodage_clb.shp$ID_CARTO %in% adresse$ID_CARTO,]
 
-de_cote.shp
-
-table(de_cote.shp$Loc_name, useNA = "ifany")
+# table(de_cote.shp$Loc_name, useNA = "ifany")
 
 # on vire les Na et on regarde la répartition rural urbain
 
@@ -46,7 +44,16 @@ de_cotecorrigé.shp <- st_read("data/verif/de_coteMatthieu.geojson")
 str(de_cotecorrigé.shp)
 table(de_cotecorrigé.shp$Loc_name)
 
-## on a 99 adresses qui ont eu une precision de changées
+de_cotecorrigé.shp$Loc_name <- substr(de_cotecorrigé.shp$Loc_name, 1, 1)
+
+# rajout du type de commune par adresse !!! attention c'est le type de commune en 2019
+adresse_commune.shp <- st_join(de_cotecorrigé.shp,
+                               st_transform(communes.shp[,c("TYPE_CO", "insee")], 2154))
+
+table(adresse_commune.shp$Loc_name, adresse_commune.shp$TYPE_CO)
+
+## on a 99 adresses qui
+#ont eu une precision de changées
 # si on veut regarder les distances 
 
 # on doit prendre de cote et de coté corriger
@@ -56,6 +63,13 @@ nom_a_garder <- c("ID_CARTO", "Loc_name")
 
 de_cote.shp <- de_cote.shp[, nom_a_garder] 
 de_cotecorrigé.shp <- de_cotecorrigé.shp[, nom_a_garder]
+
+# matrice de diff
+de_cote.dat <- st_drop_geometry(de_cote.shp)
+de_cotecorrigé.dat <- st_drop_geometry(de_cotecorrigé.shp)
+join_decote <- left_join(de_cote.dat, de_cotecorrigé.dat, by = c("ID_CARTO" = "ID_CARTO"), suffix = c("_avant", "_après"))
+
+table(join_decote$Loc_nameavant, join_decote$Loc_nameaprès)
 
 de_cote_distance <- rbind(de_cotecorrigé.shp, de_cote.shp)
 
