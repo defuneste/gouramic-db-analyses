@@ -2,7 +2,8 @@
 
 source("reassemblage_geocodage_mains.R")
 
-pas_verif_a_la_main <- adresse_filtre[!adresse_filtre$ID_CARTO %in% verif_ecartv2.shp$ID_CARTO,] 
+## modifier verif_ecartv3 par v2 si on veut exclure les proches mais avec une categorie de precision différente
+pas_verif_a_la_main <- adresse_filtre[!adresse_filtre$ID_CARTO %in% verif_ecartv3.shp$ID_CARTO,] 
 
 library(dplyr)
 library(lubridate)
@@ -22,6 +23,9 @@ pas_verif_a_la_main <- pas_verif_a_la_main %>%
            )
     )
 
+table(pas_verif_a_la_main$preci_clb)
+
+# c'est vide si on met la v3
 a_verif <- pas_verif_a_la_main[pas_verif_a_la_main$preci_clb != pas_verif_a_la_main$preci_evs,]
 
 

@@ -84,3 +84,4 @@ names(verif_ecartv2.shp)[!names(verif_ecartv2.shp) %in% names(preci_diff)]
 preci_diff <- preci_diff[,names(verif_ecartv2.shp)]
 
 verif_ecartv3.shp <- rbind(verif_ecartv2.shp, preci_diff)
+rm(verif_ecartv2.shp)

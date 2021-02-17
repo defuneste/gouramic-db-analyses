@@ -1,4 +1,5 @@
 # exploration des cas avec un seul géocodage
+# dit 887
 
 library(sf)
 library(lubridate)
