@@ -25,3 +25,4 @@ adresse_commune.shp <- st_join(
     st_transform(communes.shp[,c("TYPE_CO", "insee")], 2154))
 
 
+table(adresse_commune.shp$TYPE_CO)

@@ -12,11 +12,14 @@ source("reassemblage_geocodage_mains.R")
 # il faut corriger le preci_clb pour ne prendre que le premier char et pe passer en facteur 
 
 dim(adresse_filtre[adresse_filtre$distance > 5,])
-from <- adresse_filtre[adresse_filtre$distance > 5,]
 
-to <- verif_ecartv2.shp
+#from <- adresse_filtre[adresse_filtre$distance > 5,]
 
-table(verif_ecartv2.shp$preci_clb)
+from <- adresse_filtre[adresse_filtre$ID_CARTO %in% verif_ecartv3.shp$ID_CARTO,]
+
+to <- verif_ecartv3.shp
+
+table(verif_ecartv3.shp$preci_clb)
 
 # on va dropper la geometrie et faire une jointure entre les deux jeu de données puis faire une matrice 
 
