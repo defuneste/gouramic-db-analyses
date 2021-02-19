@@ -14,7 +14,6 @@ source("reassemblage_geocodage_mains.R")
 dim(adresse_filtre[adresse_filtre$distance > 5,])
 
 #from <- adresse_filtre[adresse_filtre$distance > 5,]
-
 from <- adresse_filtre[adresse_filtre$ID_CARTO %in% verif_ecartv3.shp$ID_CARTO,]
 
 to <- verif_ecartv3.shp
