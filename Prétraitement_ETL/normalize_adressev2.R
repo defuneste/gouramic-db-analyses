@@ -34,32 +34,47 @@ merge <- rbind(verif_ecartv3.shp[,a_garder], pas_verif_a_la_main, de_cotecorrigÃ
 mat_dist <- st_distance(merge)
 hc <- hclust(as.dist(mat_dist), method="complete")
 
+#merge$id_cluster_100 <- cutree(hc, h=100)
 
 # sur d m
 d=1
-
-merge$id_cluster_1 <- cutree(hc, h=d)
-merge$id_cluster_10 <- cutree(hc, h=10)
-merge$id_cluster_100 <- cutree(hc, h=100)
-merge$id_cluster_150 <- cutree(hc, h=150)
-
-# sur une plus grande distance : 50 m cf plot plus bas
 
 ## 2.2 Avec un buffer de d distance et un intersects
 # peut Ãªtre utile de faire un filtre 
 
 buffer_1 <-st_buffer(merge, d)
+parts_1 <- st_cast(st_union(buffer_1),"POLYGON")
+clust_1 <- unlist(st_intersects(buffer_1, parts_1))
+diss <- cbind(buffer_1, clust_1) %>%
+    group_by(clust_1) %>%
+    summarize(#id_cluster_100 = paste(id_cluster_100, collapse = ", "),
+        comptage_1 = n())
+
+buffer_100_plus <- st_join(merge, diss)
+
+
 buffer_10 <- st_buffer(merge, 10) # buffer de 100 m et pas bufer_50 mauvais nom
+parts_10 <- st_cast(st_union(buffer_10),"POLYGON")
+clust_10 <- unlist(st_intersects(buffer_10, parts_10))
+diss <- cbind(buffer_10, clust_10) %>%
+    group_by(clust_10) %>%
+    summarize(#id_cluster_100 = paste(id_cluster_100, collapse = ", "),
+        comptage_10 = n())
+
 buffer_100 <- st_buffer(merge, 100)
-buffer_150 <- st_buffer(merge, 150)
+parts_100 <- st_cast(st_union(buffer_100),"POLYGON")
+clust_100 <- unlist(st_intersects(buffer_100, parts_100))
+diss <- cbind(buffer_100, clust_100) %>%
+    group_by(clust_100) %>%
+    summarize(#id_cluster_100 = paste(id_cluster_100, collapse = ", "),
+        comptage_100 = n())
 
-merge$cluster_1 <-lengths(st_intersects(merge, buffer_1))
-merge$cluster_10 <-lengths(st_intersects(merge, buffer_10))
-merge$cluster_100 <-lengths(st_intersects(merge, buffer_100))
-merge$cluster_150 <-lengths(st_intersects(merge, buffer_150))
+buffer_100_plus <- st_join(buffer_100_plus, diss)
+
+st_write(buffer_100_plus, "data/verif/adresse_buffer.geojson")
+st_write(buffer_100, "data/verif/buffer_100.geojson")
 
 
-st_write(merge[merge$cluster_1 > 1,], "data/clusteringv2.geojson")
 
 ##  2.2 Plot pour regarder l'evolution du clustering en fonction de la distance  ========================
 
