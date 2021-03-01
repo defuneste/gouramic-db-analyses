@@ -71,9 +71,11 @@ diss <- cbind(buffer_100, clust_100) %>%
 
 buffer_100_plus <- st_join(buffer_100_plus, diss)
 
-st_write(buffer_100_plus, "data/verif/adresse_buffer.geojson")
-st_write(buffer_100, "data/verif/buffer_100.geojson")
+#st_write(buffer_100_plus, "data/verif/adresse_buffer.geojson")
+#st_write(buffer_100, "data/verif/buffer_100.geojson")
 
+#aggregat <- sf::st_read("data/verif/adresse_buffer.geojson")
+#aggregat_filter <- aggregat[aggregat$comptage_10 > 1,] 
 
 
 ##  2.2 Plot pour regarder l'evolution du clustering en fonction de la distance  ========================
