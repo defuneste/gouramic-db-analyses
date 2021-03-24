@@ -31,7 +31,7 @@ dim(verif_ecart.shp)
 
 table(verif_ecart.shp$geocodage_main)
 
-## ce qui avait deja éte goecodé à la main 
+## ce qui avait deja éte geocodé à la main 
 adresse <- sf::st_read("data/verif/distance.geojson")
 adresse_filtre <- sf::st_drop_geometry(adresse) 
 adresse_filtre$distance <-as.numeric(adresse_filtre$distance)
