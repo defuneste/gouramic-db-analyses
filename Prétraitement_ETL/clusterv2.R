@@ -1,9 +1,8 @@
 ### on recupère les cluster et on les fusionne
 
-
 ### clustering 
 
-mat_dist <- st_distance(merge)
+mat_dist <- st_distance(adresse_pre_cluster)
 hc <- hclust(as.dist(mat_dist), method="complete")
 
 #merge$id_cluster_100 <- cutree(hc, h=100)
@@ -13,25 +12,25 @@ d=1
 
 ## 2.2 Avec un buffer de d distance et un intersects
 # peut être utile de faire un filtre 
+# devrait être fonctionnalisée
 
-buffer_1 <-st_buffer(merge, d)
-parts_1 <- st_cast(st_union(buffer_1),"POLYGON")
-clust_1 <- unlist(st_intersects(buffer_1, parts_1))
+buffer_1 <-sf::st_buffer(adresse_pre_cluster, d)
+parts_1 <- sf::st_cast(sf::st_union(buffer_1),"POLYGON")
+clust_1 <- unlist(sf::st_intersects(buffer_1, parts_1))
 diss <- cbind(buffer_1, clust_1) %>%
-    group_by(clust_1) %>%
-    summarize(#id_cluster_100 = paste(id_cluster_100, collapse = ", "),
-        comptage_1 = n())
+    dplyr::group_by(clust_1) %>%
+    dplyr::summarize(#id_cluster_100 = paste(id_cluster_100, collapse = ", "),
+        comptage_1 = dplyr::n())
 
-buffer_100_plus <- st_join(merge, diss)
+buffer_100_plus <- sf::st_join(adresse_pre_cluster, diss)
 
-
-buffer_10 <- st_buffer(merge, 10) # buffer de 100 m et pas bufer_50 mauvais nom
-parts_10 <- st_cast(st_union(buffer_10),"POLYGON")
-clust_10 <- unlist(st_intersects(buffer_10, parts_10))
+buffer_10 <- sf::st_buffer(adresse_pre_cluster, 10) # buffer de 100 m et pas bufer_50 mauvais nom
+parts_10 <- sf::st_cast(sf::st_union(buffer_10),"POLYGON")
+clust_10 <- unlist(sf::st_intersects(buffer_10, parts_10))
 diss <- cbind(buffer_10, clust_10) %>%
-    group_by(clust_10) %>%
-    summarize(#id_cluster_100 = paste(id_cluster_100, collapse = ", "),
-        comptage_10 = n())
+    dplyr::group_by(clust_10) %>%
+    dplyr::summarize(#id_cluster_100 = paste(id_cluster_100, collapse = ", "),
+        dplyr::comptage_10 = n())
 
 buffer_100 <- st_buffer(merge, 100)
 parts_100 <- st_cast(st_union(buffer_100),"POLYGON")
@@ -50,43 +49,45 @@ buffer_100_plus <- st_join(buffer_100_plus, diss)
 #aggregat_filter <- aggregat[aggregat$comptage_10 > 1,] 
 
 
-##  2.2 Plot pour regarder l'evolution du clustering en fonction de la distance  ========================
+# ##  2.2 Plot pour regarder l'evolution du clustering en fonction de la distance  ========================
+#  Commenté car devrait aller dans analyse
 
-# une fonction de ce qui est fait avec le buffer
-number_cluster <- function(data = geocodage_adresse.shp, d) {
-    buffer_XX <- st_buffer(data, d)
-    dt <- data.frame(d,
-                     sum(lengths(st_intersects(data, buffer_XX)) != 1))
-    colnames(dt) <- c("d", "nb")
-    return(dt)
-}
-
-cluster_dist <- rbind(
-    number_cluster(merge, d = 1),
-    number_cluster(merge, d = 5),
-    number_cluster(merge, d = 10),
-    number_cluster(merge, d = 25),
-    number_cluster(merge, d = 50),
-    number_cluster(merge, d = 100),
-    number_cluster(merge, d = 150),
-    number_cluster(merge, d = 200)
-    #    number_cluster(d = 500),
-    #    number_cluster(d = 1000),
-    #    number_cluster(d = 10000)
-    
-)
-
-# graphique du nombre de cluster  
-
-plot(cluster_dist ,
-     type = "b",
-     ylab = "Nb de clusters avec plus d'une adresse",
-     xlab = "distance (m)")
-
-rm(d)
-
-
-
+# # une fonction de ce qui est fait avec le buffer
+# number_cluster <- function(data = geocodage_adresse.shp, d) {
+#     buffer_XX <- st_buffer(data, d)
+#     dt <- data.frame(d,
+#                      sum(lengths(st_intersects(data, buffer_XX)) != 1))
+#     colnames(dt) <- c("d", "nb")
+#     return(dt)
+# }
+# 
+# cluster_dist <- rbind(
+#     number_cluster(merge, d = 1),
+#     number_cluster(merge, d = 5),
+#     number_cluster(merge, d = 10),
+#     number_cluster(merge, d = 25),
+#     number_cluster(merge, d = 50),
+#     number_cluster(merge, d = 100),
+#     number_cluster(merge, d = 150),
+#     number_cluster(merge, d = 200)
+#     #    number_cluster(d = 500),
+#     xlab = "distance (m)")
+# 
+# rm(d)
+# #    number_cluster(d = 1000),
+#     #    number_cluster(d = 10000)
+#     
+# )
+# 
+# # graphique du nombre de cluster  
+# 
+# plot(cluster_dist ,
+#      type = "b",
+#      ylab = "Nb de clusters avec plus d'une adresse",
+#      xlab = "distance (m)")
+# 
+# rm(d)
+# 
 
 #### export et verif des cluster ==========================================================================
 

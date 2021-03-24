@@ -35,3 +35,5 @@ a_garder <- names(pas_verif_a_la_main)
 
 adresse_pre_cluster <- rbind(verif_ecartv3.shp[,a_garder], pas_verif_a_la_main, de_cotecorrigé.shp[,a_garder])
 
+rm(a_garder, adresse_complement, adresse_complement_distance, adresse_filtre, de_cotecorrigé.shp, pas_verif_a_la_main)
+
