@@ -1,46 +1,57 @@
 ### on recupère les cluster et on les fusionne
 
+source("Prétraitement_ETL/normalize_adressev2.R")
+
 ### clustering 
 
-mat_dist <- st_distance(adresse_pre_cluster)
-hc <- hclust(as.dist(mat_dist), method="complete")
-
-#merge$id_cluster_100 <- cutree(hc, h=100)
-
-# sur d m
-d=1
+# mat_dist <- st_distance(adresse_pre_cluster)
+# hc <- hclust(as.dist(mat_dist), method="complete")
+# 
+# # sur d m
+d = 1
 
 ## 2.2 Avec un buffer de d distance et un intersects
 # peut être utile de faire un filtre 
 # devrait être fonctionnalisée
 
-buffer_1 <-sf::st_buffer(adresse_pre_cluster, d)
-parts_1 <- sf::st_cast(sf::st_union(buffer_1),"POLYGON")
-clust_1 <- unlist(sf::st_intersects(buffer_1, parts_1))
-diss <- cbind(buffer_1, clust_1) %>%
-    dplyr::group_by(clust_1) %>%
-    dplyr::summarize(#id_cluster_100 = paste(id_cluster_100, collapse = ", "),
-        comptage_1 = dplyr::n())
+buffer_adresse <- function(data, d){
+    buffer <-sf::st_buffer(data, d)
+    parts <- sf::st_cast(sf::st_union(buffer),"POLYGON")
+    clust <- unlist(sf::st_intersects(buffer, parts))
+    diss <- cbind(buffer, clust) %>%
+        dplyr::group_by(clust) %>%
+        dplyr::summarize(comptage = dplyr::n())
+}
 
-buffer_100_plus <- sf::st_join(adresse_pre_cluster, diss)
+v1 <- buffer_adresse(adresse_pre_cluster, d = 1)
+test <- sf::st_join(adresse_pre_cluster, v1, suffix = c("", paste0("_", d)))
+v2 <-  buffer_adresse(adresse_pre_cluster, d = 100)
+test_2 <- sf::st_join(test, v2, suffix = c("", paste0("_", d = 100)))
 
-buffer_10 <- sf::st_buffer(adresse_pre_cluster, 10) # buffer de 100 m et pas bufer_50 mauvais nom
+# sur d m
+d = 10
+
+v2 <- buffer_adresse(v1, d)
+
+v3 <- buffer_adresse(v2, d = 100)
+
+buffer_10 <- sf::st_buffer(adresse_pre_cluster, d) # buffer de 100 m et pas bufer_50 mauvais nom
 parts_10 <- sf::st_cast(sf::st_union(buffer_10),"POLYGON")
 clust_10 <- unlist(sf::st_intersects(buffer_10, parts_10))
 diss <- cbind(buffer_10, clust_10) %>%
     dplyr::group_by(clust_10) %>%
     dplyr::summarize(#id_cluster_100 = paste(id_cluster_100, collapse = ", "),
-        dplyr::comptage_10 = n())
+        comptage_10 = dplyr::n())
 
-buffer_100 <- st_buffer(merge, 100)
-parts_100 <- st_cast(st_union(buffer_100),"POLYGON")
-clust_100 <- unlist(st_intersects(buffer_100, parts_100))
+buffer_100 <- sf::st_buffer(adresse_pre_cluster, 100)
+parts_100 <- sf::st_cast(st_union(buffer_100),"POLYGON")
+clust_100 <- unlist(sf::st_intersects(buffer_100, parts_100))
 diss <- cbind(buffer_100, clust_100) %>%
-    group_by(clust_100) %>%
+    dplyr::group_by(clust_100) %>%
     summarize(#id_cluster_100 = paste(id_cluster_100, collapse = ", "),
-        comptage_100 = n())
+        comptage_100 = dplyr::n())
 
-buffer_100_plus <- st_join(buffer_100_plus, diss)
+buffer_100_plus <- sf::st_join(buffer_100_plus, diss)
 
 #st_write(buffer_100_plus, "data/verif/adresse_buffer.geojson")
 #st_write(buffer_100, "data/verif/buffer_100.geojson")
