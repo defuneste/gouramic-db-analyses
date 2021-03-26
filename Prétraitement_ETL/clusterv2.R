@@ -1,63 +1,45 @@
-### on recupère les cluster et on les fusionne
+    ### on recupère les cluster et on les fusionne
+    
+    source("Prétraitement_ETL/normalize_adressev2.R")
+    
+    ### clustering 
+    
+    # mat_dist <- st_distance(adresse_pre_cluster)
+    # hc <- hclust(as.dist(mat_dist), method="complete")
+    # 
+    # # sur d m
+    d = 1
+    
+    ## 2.2 Avec un buffer de d distance et un intersects
+    # peut être utile de faire un filtre 
+    # devrait être fonctionnalisée
+    
+    buffer_adresse <- function(data, d){
+        buffer <-sf::st_buffer(data, d)
+        parts <- sf::st_cast(sf::st_union(buffer),"POLYGON")
+        clust <- unlist(sf::st_intersects(buffer, parts))
+        diss <- cbind(buffer, clust) %>%
+            dplyr::group_by(clust) %>%
+            dplyr::summarize(comptage = dplyr::n())
+    }
 
-source("Prétraitement_ETL/normalize_adressev2.R")
+buffer.shp <- buffer_adresse(adresse_pre_cluster, d )
+adresse_buffer.shp <- sf::st_join(adresse_pre_cluster, buffer.shp , suffix = c("", paste0("_", d)))
 
-### clustering 
-
-# mat_dist <- st_distance(adresse_pre_cluster)
-# hc <- hclust(as.dist(mat_dist), method="complete")
-# 
-# # sur d m
-d = 1
-
-## 2.2 Avec un buffer de d distance et un intersects
-# peut être utile de faire un filtre 
-# devrait être fonctionnalisée
-
-buffer_adresse <- function(data, d){
-    buffer <-sf::st_buffer(data, d)
-    parts <- sf::st_cast(sf::st_union(buffer),"POLYGON")
-    clust <- unlist(sf::st_intersects(buffer, parts))
-    diss <- cbind(buffer, clust) %>%
-        dplyr::group_by(clust) %>%
-        dplyr::summarize(comptage = dplyr::n())
-}
-
-v1 <- buffer_adresse(adresse_pre_cluster, d = 1)
-test <- sf::st_join(adresse_pre_cluster, v1, suffix = c("", paste0("_", d)))
-v2 <-  buffer_adresse(adresse_pre_cluster, d = 100)
-test_2 <- sf::st_join(test, v2, suffix = c("", paste0("_", d = 100)))
-
-# sur d m
 d = 10
+buffer.shp <-  buffer_adresse(adresse_pre_cluster, d)
+adresse_buffer.shp <- sf::st_join(adresse_buffer.shp, buffer.shp, suffix = c("", paste0("_", d)))
 
-v2 <- buffer_adresse(v1, d)
+d = 100
 
-v3 <- buffer_adresse(v2, d = 100)
+buffer.shp <-  buffer_adresse(adresse_pre_cluster, d )
+adresse_buffer.shp <- sf::st_join(adresse_buffer.shp, buffer.shp, suffix = c("", paste0("_", d)))
 
-buffer_10 <- sf::st_buffer(adresse_pre_cluster, d) # buffer de 100 m et pas bufer_50 mauvais nom
-parts_10 <- sf::st_cast(sf::st_union(buffer_10),"POLYGON")
-clust_10 <- unlist(sf::st_intersects(buffer_10, parts_10))
-diss <- cbind(buffer_10, clust_10) %>%
-    dplyr::group_by(clust_10) %>%
-    dplyr::summarize(#id_cluster_100 = paste(id_cluster_100, collapse = ", "),
-        comptage_10 = dplyr::n())
+#st_write(adresse_buffer.shp, "data/verif/adresse_buffer.geojson")
 
-buffer_100 <- sf::st_buffer(adresse_pre_cluster, 100)
-parts_100 <- sf::st_cast(st_union(buffer_100),"POLYGON")
-clust_100 <- unlist(sf::st_intersects(buffer_100, parts_100))
-diss <- cbind(buffer_100, clust_100) %>%
-    dplyr::group_by(clust_100) %>%
-    summarize(#id_cluster_100 = paste(id_cluster_100, collapse = ", "),
-        comptage_100 = dplyr::n())
-
-buffer_100_plus <- sf::st_join(buffer_100_plus, diss)
-
-#st_write(buffer_100_plus, "data/verif/adresse_buffer.geojson")
-#st_write(buffer_100, "data/verif/buffer_100.geojson")
-
-#aggregat <- sf::st_read("data/verif/adresse_buffer.geojson")
-#aggregat_filter <- aggregat[aggregat$comptage_10 > 1,] 
+# ici j'ai pas verifier avoir les memes resultats 
+aggregat <- sf::st_read("data/verif/adresse_buffer.geojson")
+aggregat_filter <- aggregat[aggregat$comptage_10 > 1,] 
 
 
 # ##  2.2 Plot pour regarder l'evolution du clustering en fonction de la distance  ========================
@@ -102,9 +84,6 @@ buffer_100_plus <- sf::st_join(buffer_100_plus, diss)
 
 #### export et verif des cluster ==========================================================================
 
-library(sf)
-library(dplyr)
-
 aggregat_filter <- aggregat_filter %>% 
     dplyr::arrange(aggregat_filter$clust_100)
 
@@ -114,96 +93,5 @@ aggregat_filter_olivier <- aggregat_filter[533:length(aggregat_filter$ID_CARTO),
 sf::st_write(aggregat_filter_matthieu, "data/verif/aggregat_filter_matthieu.geojson")
 sf::st_write(aggregat_filter_olivier, "data/verif/aggregat_filter_olivier.geojson")
 
-table(aggregat$comptage_100, aggregat$comptage_10)
 
-###### un cluster pour les gouverner tous =========================================================
-
-aggregat_filter_matthieu <- st_read("data/verif/aggregat_filter_matthieu.geojson")
-aggregat_filter_olivier <- st_read("data/verif/aggregat_filter_olivier.geojson")
-
-aggregat_filter <- rbind(aggregat_filter_matthieu, aggregat_filter_olivier)
-
-# un peu de nettoyage on garde le cluster le plus large
-# on eneleve le cluster si idem == 0 ie n'est pas un cluster et du coup prend la valeur de 0
-cluster.shp <- aggregat_filter %>%
-    mutate(cluster = ifelse(verif == 1, clust_100, 0) ) %>%
-    filter(cluster != 0) # on retire les non cluster
-
-# il faut changer la loc des points formant le clusters par le point au milieu
-# comment definit-on le milieu ?
-# cas avec deux points et cas avec plus de deux points
-
-# centre_cluster <- cluster.shp %>%
-#     filter(comptage_100 >= 2) %>%
-#     group_by(cluster) %>%
-#     distinct(count = n_distinct(geometry) ) %>% # on produit un comptage de geometry distinct
-#     
-#     
-#     st_drop_geometry() %>%
-#     right_join(cluster.shp, by = "cluster") %>%
-#     ungroup() %>%
-#     st_as_sf(sf_column_name = "geometry")
-
-# # attention ici meme si on a plusieurs points ils peuvent :
-# # - se superposer donc on ne peut calculer le polygones
-# # - n'avoir que deux points differents : lignes
-# 
-# # attention ne marche que pour un cas
-# centre_cluster$geometry[centre_cluster$count == 3] <- st_centroid(st_combine(st_as_sf(centre_cluster[centre_cluster$count == 3,])) , "POLYGON")
-# # 
-# # centroid marche pour une ligne, vu notre cas il sera sur la ligne mais utiliser une variante si ligne courbe
-# centre_cluster_ligne <- aggregate(
-#     centre_cluster$geometry[centre_cluster$count == 2],
-#     list(centre_cluster$bigcluster[centre_cluster$count == 2]),
-#     function(x){st_centroid(st_cast(st_combine(x),"LINESTRING"))} 
-# )
-# 
-# # match est utilise pour produire un vecteur d'indexation attribuant on va attribuer le point
-# centre_cluster$geometry[centre_cluster$count == 2] <- st_sfc(centre_cluster_ligne$geometry)[match(centre_cluster$bigcluster[centre_cluster$count == 2],  centre_cluster_ligne$Group.1)]
-# 
-# # on prepare pour un rajout
-# transit <- data.frame(
-#     sort(unique(centre_cluster$bigcluster)),
-#     1:length(unique(centre_cluster$bigcluster))
-# )
-# names(transit) <- c("bigcluster", "addresse_passage")
-# 
-# centre_cluster <- centre_cluster %>% left_join(transit,  by = c("bigcluster" = "bigcluster"))
-# centre_cluster <-rename(centre_cluster, adresse_clb = adresse_id)
-# 
-# # un bout de la futur table de passage
-# transit_passage <- centre_cluster %>% 
-#     st_drop_geometry() %>% 
-#     dplyr::select(addresse_passage, adresse_clb)  #%>%
-# #dplyr::mutate(adresse_id = 1:length(addresse_passage))
-# 
-# names(transit_passage) <- c("adresse_id", "adresse_passage")
-# 
-# length(unique(geocodage_adresse.shp$adresse_id))
-# 
-# centre_cluster_clean <- centre_cluster %>% 
-#     group_by(addresse_id) %>% 
-#     summarize(adresse_clb = first(adresse_id),
-#               sujet_id = first(sujet_id),
-#               precision = first(precision),
-#               source_codage = first(source_codage)) 
-# 
-# # il faut retirer les clusters et preparer le jeux de données
-# # c'est un peu lourd en computation pour ce que cela fait ...
-# # il y a l'ajout puis la mise en forme
-# table_adresse.shp <- geocodage_adresse.shp[!geocodage_adresse.shp$adresse_id %in% centre_cluster$adresse_id,] %>% 
-#     select(-c(date_start, date_end, commune, adresse, cp, info_sup,  nb_cluster, nb_bigcluster)) %>% 
-#     bind_rows(centre_cluster_clean) %>% 
-#     group_by(adresse_id) %>% # c'est pas ultra propre
-#     summarize(sujet_id = first(sujet_id),
-#               precision = first(precision),
-#               source_codage = first(source_codage)) %>% 
-#     dplyr::mutate(adresse_clb = adresse_id) %>% 
-#     dplyr::mutate(adresse_id = 1:length(adresse_id))  %>% 
-#     dplyr::select(adresse_id, sujet_id, adresse_clb, precision, source_codage)
-# 
-# # il y a des id de sujet avec  des fautes de frappes à corriger
-# # oui j'ai verifier 08_006X
-# table_adresse.shp$sujet_id[table_adresse.shp$sujet_id == "08_006_"] <- "08_0006"
-# geocodage_adresse.shp$sujet_id[geocodage_adresse.shp$sujet_id == "08_006_"] <- "08_0006"
 
