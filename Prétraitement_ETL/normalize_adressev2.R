@@ -40,7 +40,7 @@ rm(a_garder, adresse_complement, adresse_complement_distance, adresse_filtre, de
 
 ###### un cluster pour les gouverner tous =========================================================
 
-aggregat_filter_matthieu <- st_read("data/verif/aggregat_filter_matthieu.geojson")
+aggregat_filter_matthieu <- st_read("data/verif/aggregat_filter_matthieu(1).geojson")
 aggregat_filter_olivier <- st_read("data/verif/aggregat_filter_olivier.geojson")
 
 aggregat_filter <- rbind(aggregat_filter_matthieu, aggregat_filter_olivier)
@@ -55,31 +55,31 @@ cluster.shp <- aggregat_filter %>%
 # comment definit-on le milieu ?
 # cas avec deux points et cas avec plus de deux points
 
-# centre_cluster <- cluster.shp %>%
-#     filter(comptage_100 >= 2) %>%
-#     group_by(cluster) %>%
-#     distinct(count = n_distinct(geometry) ) %>% # on produit un comptage de geometry distinct
-#     
-#     
-#     st_drop_geometry() %>%
-#     right_join(cluster.shp, by = "cluster") %>%
-#     ungroup() %>%
-#     st_as_sf(sf_column_name = "geometry")
+centre_cluster <- cluster.shp %>%
+    filter(comptage_100 >= 2) %>%
+    group_by(cluster) %>%
+    distinct(count = n_distinct(geometry) ) %>% # on produit un comptage de geometry distinct
+    st_drop_geometry() %>%
+    right_join(cluster.shp, by = "cluster") %>%
+    ungroup() %>%
+    st_as_sf(sf_column_name = "geometry")
 
-# # attention ici meme si on a plusieurs points ils peuvent :
-# # - se superposer donc on ne peut calculer le polygones
-# # - n'avoir que deux points differents : lignes
+table(centre_cluster$count)
+
+# attention ici meme si on a plusieurs points ils peuvent :
+# - se superposer donc on ne peut calculer le polygones
+# - n'avoir que deux points differents : lignes
 # 
-# # attention ne marche que pour un cas
-# centre_cluster$geometry[centre_cluster$count == 3] <- st_centroid(st_combine(st_as_sf(centre_cluster[centre_cluster$count == 3,])) , "POLYGON")
-# # 
-# # centroid marche pour une ligne, vu notre cas il sera sur la ligne mais utiliser une variante si ligne courbe
-# centre_cluster_ligne <- aggregate(
-#     centre_cluster$geometry[centre_cluster$count == 2],
-#     list(centre_cluster$bigcluster[centre_cluster$count == 2]),
-#     function(x){st_centroid(st_cast(st_combine(x),"LINESTRING"))} 
-# )
-# 
+# attention ne marche que pour un cas on en a 9 doc non 
+centre_cluster$geometry[centre_cluster$count == 3] <- st_centroid(st_combine(st_as_sf(centre_cluster[centre_cluster$count == 3,])) , "POLYGON")
+#
+# centroid marche pour une ligne, vu notre cas il sera sur la ligne mais utiliser une variante si ligne courbe
+centre_cluster_ligne <- aggregate(
+    centre_cluster$geometry[centre_cluster$count == 2],
+    list(centre_cluster$bigcluster[centre_cluster$count == 2]),
+    function(x){st_centroid(st_cast(st_combine(x),"LINESTRING"))}
+)
+
 # # match est utilise pour produire un vecteur d'indexation attribuant on va attribuer le point
 # centre_cluster$geometry[centre_cluster$count == 2] <- st_sfc(centre_cluster_ligne$geometry)[match(centre_cluster$bigcluster[centre_cluster$count == 2],  centre_cluster_ligne$Group.1)]
 # 
