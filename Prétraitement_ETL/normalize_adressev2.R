@@ -70,29 +70,35 @@ table(centre_cluster$count)
 # - se superposer donc on ne peut calculer le polygones
 # - n'avoir que deux points differents : lignes
 # 
-# attention ne marche que pour un cas on en a 9 doc non 
-centre_cluster$geometry[centre_cluster$count == 3] <- st_centroid(st_combine(st_as_sf(centre_cluster[centre_cluster$count == 3,])) , "POLYGON")
-#
+# attention ne marche que pour un cas
+
+centre_cluster$geometry[centre_cluster$count == 3] <- st_centroid(
+                                st_combine(
+                                    st_as_sf(
+                                        centre_cluster[centre_cluster$count == 3,])) , "POLYGON")
+
+
 # centroid marche pour une ligne, vu notre cas il sera sur la ligne mais utiliser une variante si ligne courbe
 centre_cluster_ligne <- aggregate(
     centre_cluster$geometry[centre_cluster$count == 2],
-    list(centre_cluster$bigcluster[centre_cluster$count == 2]),
+    list(centre_cluster$clust_100[centre_cluster$count == 2]),
     function(x){st_centroid(st_cast(st_combine(x),"LINESTRING"))}
 )
 
-# # match est utilise pour produire un vecteur d'indexation attribuant on va attribuer le point
-# centre_cluster$geometry[centre_cluster$count == 2] <- st_sfc(centre_cluster_ligne$geometry)[match(centre_cluster$bigcluster[centre_cluster$count == 2],  centre_cluster_ligne$Group.1)]
-# 
-# # on prepare pour un rajout
-# transit <- data.frame(
-#     sort(unique(centre_cluster$bigcluster)),
-#     1:length(unique(centre_cluster$bigcluster))
-# )
-# names(transit) <- c("bigcluster", "addresse_passage")
-# 
-# centre_cluster <- centre_cluster %>% left_join(transit,  by = c("bigcluster" = "bigcluster"))
-# centre_cluster <-rename(centre_cluster, adresse_clb = adresse_id)
-# 
+# match est utilise pour produire un vecteur d'indexation attribuant on va attribuer le point
+centre_cluster$geometry[centre_cluster$count == 2] <- st_sfc(centre_cluster_ligne$geometry)[match(centre_cluster$clust_100[centre_cluster$count == 2],  centre_cluster_ligne$Group.1)]
+    
+    st_write(centre_cluster, "data/verif/verif_cluster.geojson")
+
+# on prepare pour un rajout
+transit <- data.frame(
+    sort(unique(centre_cluster$clust_100)),
+    1:length(unique(centre_cluster$clust_100))
+)
+names(transit) <- c("clust_100", "addresse_passage")
+
+centre_cluster <- centre_cluster %>% left_join(transit,  by = c("clust_100" = "clust_100"))
+
 # # un bout de la futur table de passage
 # transit_passage <- centre_cluster %>% 
 #     st_drop_geometry() %>% 
