@@ -74,7 +74,7 @@ centre_cluster <- cluster.shp %>%
     sf::st_as_sf(sf_column_name = "geometry")
 
 
-table(centre_cluster$count)
+#table(centre_cluster$count)
 
 # attention ici meme si on a plusieurs points ils peuvent :
 # - se superposer donc on ne peut calculer le polygones
@@ -98,7 +98,7 @@ centre_cluster_ligne <- aggregate(
 # match est utilise pour produire un vecteur d'indexation attribuant on va attribuer le point
 centre_cluster$geometry[centre_cluster$count == 2] <- st_sfc(centre_cluster_ligne$geometry)[match(centre_cluster$clust_100[centre_cluster$count == 2],  centre_cluster_ligne$Group.1)]
     
-st_write(centre_cluster, "data/verif/verif_cluster2.geojson")
+# st_write(centre_cluster, "data/verif/verif_cluster2.geojson")
 
 # on prepare pour un rajout
 transit <- data.frame(
@@ -129,6 +129,20 @@ transit_passage <- centre_cluster %>%
 # # il y a l'ajout puis la mise en forme
 table_adresse.shp <- adresse_pre_cluster[!adresse_pre_cluster$ID_CARTO %in% centre_cluster$ID_CARTO,] 
 
+a_garder <- names(table_adresse.shp)
+
+bob <- centre_cluster[,a_garder]
+table_adresse.shp <- rbind(table_adresse.shp, bob)
+
+geocodage_clb.shp <- sf::st_read("data/sortie_15_04.shp" , stringsAsFactors = FALSE)
+
+geocodage_clbv2.shp$date_start <- parse_date_time(geocodage_clbv2.shp$date_start, orders = c("my", "dmy"))
+geocodage_clbv2.shp$date_end_a <- parse_date_time(geocodage_clbv2.shp$date_end_a, orders = c("my", "dmy"))
+
+geocodage_clbv2.shp <- geocodage_clbv2.shp %>% 
+    dplyr::select(ID_CARTO, Loc_name, Commune, CP, nb_rue_p, rue_p, compl_add_, pt_remarq_, lieudit_p ) %>% 
+    tidyr::unite("Adresse", nb_rue_p, rue_p, sep = " ",  na.rm = TRUE) %>% 
+    tidyr::unite("Info_sup", lieudit_p, compl_add_, pt_remarq_, na.rm = TRUE)
 
 # %>%
 #     select(-c(date_start, date_end, commune, adresse, cp, info_sup,  nb_cluster, nb_bigcluster)) %>%
