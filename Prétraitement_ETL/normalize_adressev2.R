@@ -136,13 +136,16 @@ table_adresse.shp <- rbind(table_adresse.shp, bob)
 
 geocodage_clb.shp <- sf::st_read("data/sortie_15_04.shp" , stringsAsFactors = FALSE)
 
-geocodage_clbv2.shp$date_start <- parse_date_time(geocodage_clbv2.shp$date_start, orders = c("my", "dmy"))
-geocodage_clbv2.shp$date_end_a <- parse_date_time(geocodage_clbv2.shp$date_end_a, orders = c("my", "dmy"))
+geocodage_clb.shp$date_start <- lubridate::parse_date_time(geocodage_clb.shp$date_start, orders = c("my", "dmy"))
+geocodage_clb.shp$date_end_a <- lubridate::parse_date_time(geocodage_clb.shp$date_end_a, orders = c("my", "dmy"))
 
-geocodage_clbv2.shp <- geocodage_clbv2.shp %>% 
-    dplyr::select(ID_CARTO, Loc_name, Commune, CP, nb_rue_p, rue_p, compl_add_, pt_remarq_, lieudit_p ) %>% 
-    tidyr::unite("Adresse", nb_rue_p, rue_p, sep = " ",  na.rm = TRUE) %>% 
-    tidyr::unite("Info_sup", lieudit_p, compl_add_, pt_remarq_, na.rm = TRUE)
+geocodage_clb.shp <- geocodage_clb.shp %>% 
+    sf::st_drop_geometry() %>% 
+    dplyr::select(ID_CARTO, date_start, date_end_a )
+
+table_adresse.shp <- dplyr::left_join(table_adresse.shp, geocodage_clb.shp, by = c("ID_CARTO" = "ID_CARTO")) 
+
+sf::st_write(table_adresse.shp, "data/envoi/clean_adressev1.geojson")
 
 # %>%
 #     select(-c(date_start, date_end, commune, adresse, cp, info_sup,  nb_cluster, nb_bigcluster)) %>%
