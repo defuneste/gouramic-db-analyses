@@ -1,10 +1,17 @@
-## script du 15/04/2020
-# mise en forme nettoyage du jeux de données des adresses
-# et geocodage
-# convention de code :
+# Date:script du 15/04/2020
+# Auteur: Olivier Leroy  www.branchtwigleaf.com/
+# Objectif: mise en forme nettoyage du jeux de données des adresses
+# Description du problème: Il faut transformer des adresses en X/Y
+# et nettoyer un peu le tableau en entré  
+# Convention de code :
 # .dat <- tableau
 # .shp <- sf 
-
+# libraries utilisées:
+# 
+# Banr n'est plus dans CRAN 
+# on peut l'avoir via les sources : https://cran.r-project.org/src/contrib/Archive/banR/
+# ou via devtools/remotes sur le github de l'auteur 
+# devtools::install_github("joelgombin/banR", build_vignettes = TRUE)
 
 ##.###################################################################################33
 ## I. Chargement des données et Mise en forme ====
@@ -13,9 +20,9 @@
 # 1- chargement des packages et données ========================
 
 # ici j'ai pris la derniere version
-# devtools::install_github("joelgombin/banR", build_vignettes = TRUE)
 
-pkgs <-  c("dplyr","stringr", "lubridate", "ggplot2", "banR", "sf")
+
+pkgs <-  c("dplyr","stringr", "lubridate", "ggplot2", "banR", "sf", "openxlsx")
 inst <- lapply(pkgs, library, character.only = TRUE)
 
 allsujet.dat <- openxlsx::read.xlsx("data/Correction_manuelle-01.xlsx")
