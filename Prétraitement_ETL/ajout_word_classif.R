@@ -145,8 +145,17 @@ list.files("data/envoi/")
 # d'ou l'importance de verif les diff dans la partie I
 # le grepl corrige un peu en ne prenant que 
 
-file.copy(from = paste0("data/",fichier_world[grepl(paste(exemple.dat$id_photo, collapse = "|"), fichier_world)])[sequence],  
-          to = paste0(ou_mettre_les_classifs, "/", stringr::str_replace(classifs, pattern = "png$", "pgw"))[sequence]
+file.copy(from = paste0("data/",
+                        fichier_world[grepl(
+                                            paste(exemple.dat$id_photo, 
+                                                  collapse = "|"),
+                                            fichier_world)]
+                        )[sequence],  
+          to = paste0(ou_mettre_les_classifs, 
+                      "/", 
+                      stringr::str_replace(classifs, 
+                                           pattern = "png$", "pgw")
+                      )[sequence]
               )
 
       
