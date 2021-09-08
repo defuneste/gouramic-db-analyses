@@ -1,9 +1,13 @@
-#### test de connection de le base via R + test dm
-
+# Date: Juillet 2020
+# Auteur: Olivier Leroy  www.branchtwigleaf.com/
+# Objectif: se connecter à la DB et reformer un jeux de données adresses
+# 
+# libraries utilisées:
+# "DBI","RPostgreSQL", "sf",  "dplyr"
 
 source("code.R") # ici j'ai mis codes/pwd/port/adresse c'est en .gitignore
 
-pkgs <-  c("DBI","RPostgreSQL", "stringr",  "microbenchmark", "sf", "purrr", "lubridate", "dplyr", "tidyr")
+pkgs <-  c("DBI","RPostgreSQL", "sf",  "dplyr")
 inst <- lapply(pkgs, library, character.only = TRUE)
 
 
@@ -23,15 +27,15 @@ dbListTables(con)
 
 rm(pwd, db, adresse, port, usr)
 
-## 1- serie de jointures ================================== 
+## 1- série de jointures ================================== 
 
-sujet.dat <- st_read(con, query="select * from gou.t_sujet;")
+sujet.dat <- sf::st_read(con, query="select * from gou.t_sujet;")
 
-adresse.shp <- st_read(con, query="select * from gou.t_adresse;")
+adresse.shp <- sf::st_read(con, query="select * from gou.t_adresse;")
 
-p_t_adresse_interval.dat <- st_read(con, query="select * from gou.p_t_adresse_interval;")
+p_t_adresse_interval.dat <- sf::st_read(con, query="select * from gou.p_t_adresse_interval;")
 
-interval_date <- st_read(con, query="select * from gou.t_interval_date;")
+interval_date <- sf::st_read(con, query="select * from gou.t_interval_date;")
 
 adresse_sujet.shp <- dplyr::left_join(adresse.shp, sujet.dat, by = c("sujet_id"))
 
@@ -40,6 +44,7 @@ temporal.dat <- dplyr::left_join(p_t_adresse_interval.dat, interval_date, by = c
 adresse_sujet_temporal.shp <- dplyr::left_join(adresse_sujet.shp, temporal.dat, by = c("adresse_id")) %>% 
     dplyr::select(-interval_id)
 
+# en fonction du besoin pe garder des table intermediaires
 rm(sujet.dat, adresse.shp, p_t_adresse_interval.dat, adresse_sujet.shp, temporal.dat, interval_date)
   
 # on peut se deconnecter
