@@ -1,27 +1,39 @@
-### octobre 2020
-# extraction pour le script de REmi
-# ici l'objectif c'est de produire une ligne par année
+# Date: Octobre 2020
+# Auteur: Olivier Leroy  www.branchtwigleaf.com/
+# Objectif: Produire un csv une ligne par année pour le script de Remi qui DL les photos 
+# Description du problème: 
+# Le script de Remi prend un csv, il faut une ligne par année 
+# ie pas une date fin debut mais ex: 1981 autre ligne 1982 autre ligne 1983 etc
+# libraries utilisées:
+# DBI","RPostgreSQL", "sf",  "dplyr", 
+
 
 source("Prétraitement_ETL/exploration_db.R")
 
 # une fonction qui rajoute les coord x et y 
+# inspiration : https://rdrr.io/github/jcvdav/startR/src/R/sfc_as_cols.R
+
 sfc_as_cols <- function(x, names = c("x","y")) {
-    stopifnot(inherits(x,"sf") && inherits(sf::st_geometry(x),"sfc_POINT")) ## un stop si ps un objet sf avec des points
-    ret <- sf::st_coordinates(x)  # coordinates retourne une marice X / Y
+    
+    stopifnot(inherits(x,"sf") && inherits(sf::st_geometry(x),"sfc_POINT")) ## un stop si pas un objet sf avec des points
+    
+    ret <- sf::st_coordinates(x)  # coordinates retourne une matrice X / Y
     ret <- tibble::as_tibble(ret) # passage en tibble
+    
     stopifnot(length(names) == ncol(ret)) # stop si on essaie de mettre autre chose que deux noms
+    
     x <- x[ , !names(x) %in% names]  # ici c'est un peu brute car on va supprimer des colonnes qui aurait les noms donnés
+    
     ret <- setNames(ret,names) # on renome
     dplyr::bind_cols(x,ret) # on bind sur les cols
+    
 }
 
 
-# on ne garde que ceux avec la precision egale ou inf au lieu dit 
+# on ne garde que ceux avec la precision egale ou inf au lieu dit et on filtre les NA
 adresse_sujet_temporal.shp <- adresse_sujet_temporal.shp[adresse_sujet_temporal.shp$precision <= 4,]
-
-# On filtre les NA 
-
 temp <- adresse_sujet_temporal.shp[!is.na(adresse_sujet_temporal.shp$date_start),]
+
 
 temp  <- temp   %>% 
     select(adresse_id,adresse_clb, sujet_id,
