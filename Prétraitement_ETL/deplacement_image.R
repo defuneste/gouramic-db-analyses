@@ -28,7 +28,8 @@ main <- function() {
                                    pattern = "jp2$"),
                         list.files(ou_sont_les_images, 
                                    recursive = TRUE, 
-                                   pattern = "jpg$"))
+                                   pattern = "jpg$")
+                        )
     
     # le script de Remi prend le nom de l'image commencant par IGNF etc 
     # ici on prend le nom de l'image : principe c'est tout ce qui est après le C
