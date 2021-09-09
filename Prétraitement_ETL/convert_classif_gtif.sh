@@ -1,8 +1,13 @@
 #! /bin/bash 
-
-# novembre 2020
-# transformation de png + world file en gtiff
-# besoin de gdal  
+# Date: novembre 2020
+# Auteur: Olivier Leroy  www.branchtwigleaf.com/
+# Objectif: Transformation de png + world file en gtiff
+# Description du problème:
+# C'est parfois plus simple de travailler avec un gtiff que plethore
+# de fichiers + sidecars files 
+# 
+# c'est plus simple de se placer dans le depot ou il y a les images
+# TODO tester si jpeg marche aussi et adapter 
 
     for filename in *.png
          do
@@ -14,5 +19,4 @@
         	
         	echo "Reviens du café $nouveau_nom."
              
-                   
     done 
