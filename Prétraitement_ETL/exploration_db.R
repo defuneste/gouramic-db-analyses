@@ -29,13 +29,13 @@ rm(pwd, db, adresse, port, usr)
 
 ## 1- série de jointures ================================== 
 
-sujet.dat <- sf::st_read(con, query="select * from gou.t_sujet;")
+sujet.dat <- sf::read_sf(con, query="select * from gou.t_sujet;")
 
-adresse.shp <- sf::st_read(con, query="select * from gou.t_adresse;")
+adresse.shp <- sf::read_sf(con, query="select * from gou.t_adresse;")
 
-p_t_adresse_interval.dat <- sf::st_read(con, query="select * from gou.p_t_adresse_interval;")
+p_t_adresse_interval.dat <- sf::read_sf(con, query="select * from gou.p_t_adresse_interval;")
 
-interval_date <- sf::st_read(con, query="select * from gou.t_interval_date;")
+interval_date <- sf::read_sf(con, query="select * from gou.t_interval_date;")
 
 adresse_sujet.shp <- dplyr::left_join(adresse.shp, sujet.dat, by = c("sujet_id"))
 

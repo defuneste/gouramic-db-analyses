@@ -5,13 +5,13 @@
 # Le script de Remi prend un csv, il faut une ligne par année 
 # ie pas une date fin debut mais ex: 1981 autre ligne 1982 autre ligne 1983 etc
 # libraries utilisées:
-# DBI","RPostgreSQL", "sf",  "dplyr", 
+# DBI","RPostgreSQL", "sf",  "dplyr", "lubridate", "purrr"
 
 
 source("Prétraitement_ETL/exploration_db.R")
 
 # une fonction qui rajoute les coord x et y 
-# inspiration : https://rdrr.io/github/jcvdav/startR/src/R/sfc_as_cols.R
+# source : https://github.com/r-spatial/sf/issues/231#issuecomment-290817623
 
 sfc_as_cols <- function(x, names = c("x","y")) {
     
@@ -29,44 +29,79 @@ sfc_as_cols <- function(x, names = c("x","y")) {
     
 }
 
+# Choix de la taille du Buffer en m (va être passer dans du lambert93 )
 
-# on ne garde que ceux avec la precision egale ou inf au lieu dit et on filtre les NA
+BUFFER <- 2000
+
+
+# on ne garde que ceux avec la precision égale ou inf au lieu dit et on filtre les NA
 adresse_sujet_temporal.shp <- adresse_sujet_temporal.shp[adresse_sujet_temporal.shp$precision <= 4,]
 temp <- adresse_sujet_temporal.shp[!is.na(adresse_sujet_temporal.shp$date_start),]
 
+# Etape 1: un tableau avec un buffer et avec les info necessaires ===================== 
 
 temp  <- temp   %>% 
-    select(adresse_id,adresse_clb, sujet_id,
+    dplyr::select(adresse_id,adresse_clb, sujet_id,
            date_debut = date_start,
            date_fin = date_end) %>% 
-    mutate(interval = interval(date_debut,date_fin)) %>% 
-    st_transform(4326) %>% 
+    dplyr::mutate(interval = lubridate::interval(date_debut,date_fin)) %>% 
+    sf::st_transform(4326) %>% 
     sfc_as_cols() %>% 
-    st_transform(2154) %>% 
-    st_buffer(2000) %>% 
-    st_transform(4326) %>% 
-    dplyr::select(adresse_id,adresse_clb, sujet_id, date_debut, date_fin, interval,  x , y, geometry) %>% 
-    arrange(adresse_id, date_debut)
+    sf::st_transform(2154) %>% # oui c'est un peu lourd
+    sf::st_buffer(BUFFER) %>%   
+    sf::st_transform(4326) %>%  # je crois que le script de Remi prenait du WGS84
+    dplyr::select(adresse_id, 
+                  adresse_clb, 
+                  sujet_id,
+                  date_debut,
+                  date_fin,
+                  interval,
+                  x,
+                  y,
+                  geometry) %>% 
+    dplyr::arrange(adresse_id, date_debut)
 
-temp$date_debut <- year(temp$date_debut)
-temp$date_fin <- year(temp$date_fin)
+temp$date_debut <- lubridate::year(temp$date_debut)
+temp$date_fin <- lubridate::year(temp$date_fin)
+
+# Etape 2 on duplicate pour X nombre d'années ===================================
+# c'est un peu lourd
 
 temp_dupli <-  temp %>% 
-    st_drop_geometry() %>% 
-    nest(date_debut, date_fin) %>% 
-    mutate(data = map(data, ~seq(unique(.x$date_debut), unique(.x$date_fin), 1))) %>% 
-    unnest(data) %>% 
-    st_as_sf(coords = c("x", "y")) %>% 
-    select(-interval) %>%  
-    st_set_crs(st_crs("EPSG:4326")) %>% 
+    sf::st_drop_geometry() %>% 
+    tidyr::nest(date_debut, date_fin) %>% 
+    mutate(date = purrr::map(data, 
+                             ~seq(unique(.x$date_debut), 
+                                  unique(.x$date_fin), 
+                                  1)
+                             )
+           ) %>% 
+    tidyr::unnest(date) %>% 
+    sf::st_as_sf(coords = c("x", "y")) %>% 
+    dplyr::select(-interval) %>%  
+    sf::st_set_crs(st_crs("EPSG:4326")) %>% 
     sfc_as_cols() %>% 
-    st_transform(2154) %>% 
-    st_buffer(1500) %>% 
-    st_transform(4326) %>% 
-    dplyr::select(adresse_id, adresse_clb, sujet_id, date_y = data, x, y, geometry)
+    sf::st_transform(2154) %>% # comprends pas pkoi je refais un buffer 
+    sf::st_buffer(BUFFER) %>% 
+    sf::st_transform(4326) %>% 
+    dplyr::select(adresse_id, 
+                  adresse_clb, 
+                  sujet_id, 
+                  date_y = date,
+                  x, 
+                  y, 
+                  geometry)
 
 
-dir.create("data/csv2")
+out_dir <- ("data/csv2")
+# si le dossier n'existe pas il est crée
+ifelse(!dir.exists(out_dir), 
+       dir.create(out_dir, 
+                  recursive = TRUE),
+       "c'est bon!")
+
+## Etape 3 Un CSV par sujet ===================================================================
+# Comme c'etait lourd on avait decider de faire un csv par sujet 
 
 outlist <- list() # initialisation d'un liste
 longueur <- length(unique(temp_dupli$sujet_id)) # le nombre de fichier souhaité

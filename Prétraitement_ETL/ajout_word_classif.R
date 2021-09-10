@@ -40,6 +40,11 @@ setdiff( substr(list.files("data", recursive = TRUE, pattern = "0.res.png$"), 1,
 # /!\ attention se script par du principe qu'il y a pas plus de 9 adresses
 # ce qui ne sera pas bon pour les cas plus generaux
 # TODO amelioration est de passer par strsplit() comme pour le tableau
+# Num_sujet
+#     |__ Num_Adresse 
+#         |__ Année
+#             |__ photo aerienne(s)
+
 
 # ici donne l'image 
 classif_manquante <- setdiff(substr(fichier_world, 
