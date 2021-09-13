@@ -43,7 +43,7 @@ sum(table(dist.dat$Preci_CLB[dist.dat$Dist_m > 5], dist.dat$PreciBan[dist.dat$Di
 # tout ce qui est dans geocodage EVS mais n'a pas de distance.
 NA_dist.dat <- geocodage_evs.shp[!geocodage_evs.shp$Id_cart %in%  dist.dat$ID_CARTO ,]
 
-# On mets de coté ceux remplie à la mains 
+# On mets de coté ceux remplis à la mains 
 
 geocode_mains_Na <- NA_dist.dat[NA_dist.dat$source_loc == "main",] %>% 
         select(Id_cart, Date_start, Date_end, Commune, Adresse, Code_postal, Info_sup, result_type) #%>% 
