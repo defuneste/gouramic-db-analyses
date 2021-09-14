@@ -16,7 +16,8 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_knit$set(root.dir = "/home/defuneste/Documents/recherche/gouramic/gouramic-db-analyses/")
+# ce path de m
+knitr::opts_knit$set(root.dir = "~/Documents/gouramic-db-analyses/")
 library(ggplot2)
 library(sf)
 library(stringr)

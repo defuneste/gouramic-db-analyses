@@ -1,8 +1,10 @@
-# Date: Mars 2021 
+# Date: Janvier 2021 
 # Auteur: Olivier Leroy  www.branchtwigleaf.com/
 # Objectif: Verifier les deux geocodages
 # Description du problème:
 # Les données sont déjà geocodées verif des distances entre les deux geocodages 
+# C'est en preparant la publi que je me suis renduy compte que le premier calcul de 
+# distances était pas bon (cf rapport/prepa_publi.Rmd)
 #
 # libraries utilisées:
 # "sf", "dplyr", "tidyr"
@@ -10,30 +12,46 @@
 library(sf)
 
 # I Chargement des produits des deux géocodages ============================
-# rapport/prepa_publi.Rmd
-
+# cf. rapport/prepa_publi.Rmd
 # distance.geojson correspond au 6724 adresses ou on a deux géocodage
 # Les couples d'adresses sont repreśentés par des lignes 
-adresse <- sf::st_read("data/verif/distance.geojson")
+
+adresse <- sf::read_sf("data/verif/distance.geojson")
 # Ici on veut juste la distance et plus la geometrie
 adresse_filtre <- sf::st_drop_geometry(adresse) 
 adresse_filtre$distance <-as.numeric(adresse_filtre$distance)
 
 # sum(adresse_filtre$distance <= 5)
 
-geocoder_main <- sf::st_read("data/geocodage_main_total.geojson")
+# cf. geocoderalmain.R
+geocoder_main <- sf::read_sf("data/geocodage_main_total.geojson")
 #st_write(geocoder_main, "data/verif/deja_geocoder.geojson")
 
-# On va chercher l'adresse 
-geocodage_clb.shp <- sf::st_read("data/sortie_15_04.shp" , stringsAsFactors = FALSE)
+# On va chercher l'adresse dans le premier geocodage clb
+geocodage_clb.shp <- sf::read_sf("data/sortie_15_04.shp" , stringsAsFactors = FALSE)
 
 # La mise en forme du geocodage_clb
 adresse_complement <- geocodage_clb.shp %>% 
-    dplyr::select(ID_CARTO, Commune, CP, nb_rue_p, rue_p, compl_add_, pt_remarq_, lieudit_p ) %>% 
-    tidyr::unite("Adresse", nb_rue_p, rue_p, sep = " ",  na.rm = TRUE) %>% 
-    tidyr::unite("Info_sup", lieudit_p, compl_add_, pt_remarq_, na.rm = TRUE)
+    dplyr::select(ID_CARTO, 
+                  Commune,
+                  CP, 
+                  nb_rue_p,
+                  rue_p,
+                  compl_add_, 
+                  pt_remarq_, 
+                  lieudit_p ) %>% 
+    tidyr::unite(col = Adresse,
+                 nb_rue_p,
+                 rue_p, 
+                 sep = " ",
+                 na.rm = TRUE) %>% 
+    tidyr::unite(col = Info_sup,
+                 lieudit_p, 
+                 compl_add_, 
+                 pt_remarq_, 
+                 na.rm = TRUE)
 
-# en y rajoutant la distance de distance.geojson
+# En y rajoutant la distance de distance.geojson
 adresse_complement_distance <- dplyr::inner_join(adresse_complement, 
                                                  adresse_filtre, 
                                                  by = "ID_CARTO")
@@ -47,6 +65,8 @@ adresse_complement_distance <- adresse_complement_distance[!adresse_complement_d
 
 # II Un split Matthieu et Olivier pour les vérifier ============================
 
+# le split c'est plutot fait sur rapport/prepa_publi.Rmd car ce dernier contenais des lignes ce qui fait que cétait plus facile de localisé 
+# les deux adresses en meme temps
 # adresse_matthieu <- adresse_complement_distance[1:(length(adresse_complement_distance$ID_CARTO)/2),]
 # st_write(adresse_matthieu, "data/verif/adresse_matthieu.geojson" )
 # adresse_olivier <- adresse_complement_distance[(length(adresse_complement_distance$ID_CARTO)/2):length(adresse_complement_distance$ID_CARTO),]

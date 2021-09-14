@@ -1,5 +1,11 @@
-### reassemblage des fichier géocoder verifier après la mesure de distance entre les deux geocodages.
-# objectif recupérer l'ensemble des adresses qui avant le geocodages était a plus de 5 m
+# Date: Fevrier 2021
+# Auteur: Olivier Leroy  www.branchtwigleaf.com/
+# Objectif: Recupérer l'ensemble des adresses qui avant le geocodage manuelle étaient a plus de 5 m
+# Description du problème:
+# réassemblage des fichier géocodées, verifees après la mesure de distance entre les deux geocodages.
+#
+# Libraries utilisées:
+# "dplyr",  "sf" 
 
 library(dplyr)
 library(sf)
@@ -16,7 +22,7 @@ part_matt_a$geocodeur <- "matthieu"
 part_matt_b <- sf::st_read("data/verif/adresse_matthieu_bisbok.geojson")
 part_matt_b$geocodeur <- "matthieu"
 
-# il y avait des doublons
+# il y avait des doublons ...
 part_oli <- part_oli[!part_oli$ID_CARTO %in% part_matt_a$ID_CARTO,]
 
 # on agregge puis supprime
@@ -30,7 +36,7 @@ adresse$distance <-as.numeric(adresse$distance)
 
 geocoder_main <- sf::st_read("data/geocodage_main_total.geojson")
 
-# on en a 93 qui avaient déja été fait ...
+# on en a 93 qui avaient déja été faite ...
 geocoder_main[geocoder_main$adresse_id %in% verif_ecart.shp$ID_CARTO, ]
 
 deja_fait <- geocoder_main[geocoder_main$adresse_id %in% adresse$ID_CARTO ,]
