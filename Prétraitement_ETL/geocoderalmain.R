@@ -74,6 +74,9 @@ RM2.shp <- sf::read_sf("data/REgeocodage/RM2_OL.shp") %>%
                                      7),
                    source_codage = "Main")
 
+# passer trois plombes à trouver cette erreur
+RM2.shp$adresse_id[RM2.shp$adresse_id == "08_006_2"] <- "08_0006_2"
+
 correction <- NA_dist.dat[NA_dist.dat$Id_cart %in% RM2.shp$adresse_id, c("Id_cart", "Date_end")]
 correction <- st_drop_geometry(correction)
 
@@ -164,4 +167,4 @@ geocode_main_totale.shp  <- rbind(geocodage_evs_oli.shp,
 
 rm(geocodage_evs_oli.shp, on_ne_fera_pas_mieux_add.shp, RM2.shp, geocodage_clb_oli.shp, vec_ordre, NA_dist.dat)
 
-#st_write(geocode_main_totale.shp, "data/geocodage_main_total.geojson")
+#st_write(geocode_main_totale.shp, "data/geocodage_main_total2.geojson")
