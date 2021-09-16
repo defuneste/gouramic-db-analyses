@@ -20,7 +20,7 @@ to <- verif_ecartv3.shp
 
 table(verif_ecartv3.shp$preci_clb)
 
-# on va dropper la geometrie et faire une jointure entre les deux jeu de données puis faire une matrice 
+# on va dropper la geometrie et faire une jointure entre les deux jeux de données puis faire une matrice 
 
 from_to <- to %>% 
     st_drop_geometry() %>% 
