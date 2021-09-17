@@ -11,6 +11,7 @@ library(dplyr)
 library(sf)
 
 # I 4075 addresses avec un ecart de plus de 5 m vérifiées =============================== 
+# cf rapport/prepa_publi.rmd
 
 # on va charger les différentes addresses verifiées 
 part_oli <- sf::read_sf("data/verif/adresse_olivier.geojson")
@@ -99,3 +100,4 @@ preci_diff <- preci_diff[,names(verif_ecartv2.shp)]
 
 verif_ecartv3.shp <- rbind(verif_ecartv2.shp, preci_diff)
 #   rm(verif_ecartv2.shp)
+rm(preci_diff)

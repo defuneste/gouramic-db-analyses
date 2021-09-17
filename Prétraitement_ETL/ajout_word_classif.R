@@ -99,11 +99,13 @@ exemple.dat$date <- lubridate::parse_date_time(stringr::str_extract(list_png,
                                                 orders = c("ymd", "y"))
 
 # la version est juste avant .res.png
+# il peut y avoir plusieurs version de classifs produites de gouramic 
 exemple.dat$version <- as.numeric(stringr::str_extract(list_png, 
                                                        pattern = "[:digit:](?=.res.png)"))
 
 # cas où on a plusieurs photos /!\ ici on part du principe que c'est du jp
-exemple.dat$id_photo <- stringr::str_extract(list_png, pattern = "(?<=C).*(?=.jp)")
+exemple.dat$id_photo <- stringr::str_extract(list_png,
+                                             pattern = "(?<=C).*(?=.jp)")
 
 # on a pas le cas là on ne garde que la dernière version de la classif
 library(magrittr)
@@ -128,7 +130,7 @@ exemple.dat$filtre <- grepl(paste(exemple.dat$id_photo,
 
 # le nom de la photo
 # ici on enchaine deux apply 
-# le premier permet dútiliser le path pour recupérer toutes les infos
+# le premier permet d'utiliser le path pour recupérer toutes les infos
 # le second extrait juste le 6 élements pour avoir le nom de la classif
 classifs <- sapply(sapply(exemple.dat$path[exemple.dat$filtre == TRUE], 
                           function(x){ strsplit(x, "/")})

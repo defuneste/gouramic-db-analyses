@@ -32,7 +32,7 @@ gdalUtils::batch_gdal_translate(
     pattern = "jp2$"
 )
 
-batch_gdal_translate(
+gdalUtils::batch_gdal_translate(
     infiles = ou_sont_les_images,
     outdir = out_dir,
     outsuffix = ".tif",

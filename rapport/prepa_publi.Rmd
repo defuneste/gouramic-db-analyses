@@ -84,9 +84,9 @@ geocodage_evs.shp[is.na(geocodage_evs.shp$precision),]
 
 ## distance 
 
-```{r}
+```{r distance_entre_duex_geocodage_brut}
 # on vire les NA ou on a pas de loc
-geocodage_clbv2.shp <- geocodage_clbv2.shp[!is.na(geocodage_clbv2.shp$precision),] 
+geocodage_clbv2.shp <- geocodage_clbv2.shp[!is.na(geocodage_clbv2.shp$precision),] # lignes vides à la base (50) 7661 -> 7611
 geocodage_evs.shp <- geocodage_evs.shp[!is.na(geocodage_evs.shp$precision),]
 geocodage_evs.shp  <- geocodage_evs.shp[!st_is_empty(geocodage_evs.shp$geometry),]
 ## on ne va garder que ceux présent dans le codage ESRI

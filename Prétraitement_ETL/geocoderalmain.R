@@ -1,8 +1,8 @@
 # Date: Juillet 2020 / Janvier 2021
 # Auteur: Olivier Leroy  www.branchtwigleaf.com/
-# Objectif: Recompose tout ce qui a été geocodér à la main 
+# Objectif: Recompose tout ce qui a été geocodé à la main 
 # Description du problème: 
-# Recompose tout ce qui a été geocodér à la main
+# Recompose tout ce qui a été geocodé à la main
 #
 # Libraries utilisées:
 # "dplyr", "lubridate",  "sf"
